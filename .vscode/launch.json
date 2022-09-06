@@ -17,7 +17,8 @@
 				"--lm_coef=10",
 				"--flag=E2_L10",
 				"--model_name=BART",
-				"--incontext"
+				"--incontext",
+				"--debug=True",
 			]
 		},
 		{

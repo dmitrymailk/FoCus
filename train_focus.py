@@ -159,6 +159,9 @@ def train():
     parser.add_argument(
         "--flag", type=str, default="", help="Assign the name of the folder"
     )
+    parser.add_argument(
+        "--debug", type=bool, default=False, help="Variable for debugging"
+    )
     parser.add_argument("--seed", type=int, default=19950604)
     parser.add_argument(
         "--random_knowledge",
@@ -207,6 +210,7 @@ def train():
         model = bartmodel.from_pretrained(args.bart_model_path)
         model.to(args.device)
         model.eval()
+        # ЭТО ВООБЩЕ ЧТО ЗА УСЛОВИЕ??, ОНО ВСЕГДА TRUE
         if args.bart_model_path == "facebook/bart-base" or "facebook/bart-large":
             add_special_tokens_(model, tokenizer)
 
