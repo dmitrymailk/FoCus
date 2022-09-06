@@ -151,3 +151,13 @@ by running conda init? [yes|no]
 ```bash
 source ~/.bashrc
 ```
+
+### отключить автоматическую активацию среды в conda
+```bash
+conda config --set auto_activate_base false
+```
+
+### активировать среду
+```bash
+source /home/dimweb/Desktop/deeppavlov/d_env/bin/activate
+```
