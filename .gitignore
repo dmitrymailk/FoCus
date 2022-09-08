@@ -1,4 +1,4 @@
 *.pyc
 data
 *.bin
-models
+models/
