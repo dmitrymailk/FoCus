@@ -29,6 +29,8 @@ from transformers import AdamW, WEIGHTS_NAME, CONFIG_NAME
 from utils_focus import make_focus_logdir
 from data_utils import get_data_loaders, add_special_tokens_
 
+from utils import save_object_to_json
+
 logger = logging.getLogger(__file__)
 
 
@@ -174,6 +176,7 @@ def train():
         help="If true, it will use incontext structure",
     )
     args = parser.parse_args()
+    save_object_to_json(args, "args.json")
     torch.manual_seed(args.seed)
 
     logging.basicConfig(

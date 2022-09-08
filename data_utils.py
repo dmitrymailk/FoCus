@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from python_tf_idf.tfidf import TfIdf
 
 from utils_focus import get_dataset_only_train_dev, get_dataset_only_test
+from utils import save_object_to_json
 
 SPECIAL_TOKENS = ["<machine>", "<human>", "<persona>", "<knowledge>"]
 ATTR_TO_SPECIAL_TOKEN = {
@@ -384,6 +385,8 @@ def build_input_from_segments_bart_inctxt(
     inference=False,
     with_eos=True,
 ):
+    local_vars = locals()
+    # save_object_to_json(locals(), "build_input_from_segments_bart_inctxt__input.json")
     """Build a sequence of input from 3 segments: persona, history and last reply."""
     bos = tokenizer.bos_token_id
     eos = tokenizer.eos_token_id
@@ -497,7 +500,7 @@ def build_input_from_segments_bart_inctxt(
     ]
     instance["tot_knowledge_eos"] = [len(p) - 1 for p in paragraphs]
     assert len(instance["decoder_input_ids"]) == len(instance["lm_labels"])
-
+    save_object_to_json(instance, "build_input_from_segments_bart_inctxt__output.json")
     return instance
 
 
@@ -670,7 +673,7 @@ def get_data_loaders(args, tokenizer, generation=False):
 
     logger.info("Build inputs and labels")
     datasets = {"train": defaultdict(list), "valid": defaultdict(list)}
-
+    test_instances = []
     for dataset_name, dataset in all_dataset.items():
         print(dataset_name, len(dataset))
         if generation == True:
@@ -719,10 +722,13 @@ def get_data_loaders(args, tokenizer, generation=False):
                         testset=testset,
                         inference=args.inference,
                     )
+                    test_instances.append(instance)
 
                 for input_name, input_array in instance.items():
                     datasets[dataset_name][input_name].append(input_array)
-
+    save_object_to_json(
+        test_instances, "build_input_from_segments_bart_inctxt__test_instances.json"
+    )
     logger.info("Pad inputs and convert to Tensor")
     tensor_datasets = {"train": [], "valid": []}
 

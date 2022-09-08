@@ -5,6 +5,8 @@ import os
 import torch
 from transformers import cached_path
 
+from utils import save_object_to_json, save_object_to_pickle
+
 logger = logging.getLogger(__file__)
 
 
@@ -23,6 +25,7 @@ def get_dataset_only_train_dev(
             return dict((n, tokenize(o)) for n, o in obj.items())
         return list(tokenize(o) for o in obj)
 
+    # save_object_to_json(locals(), "get_dataset_only_train_dev__input.json")
     train_dataset_cache = (
         train_dataset_cache + "_train_focus_" + type(tokenizer).__name__
     )
@@ -121,6 +124,7 @@ def get_dataset_only_train_dev(
             else:
                 torch.save(dataset, dev_dataset_cache)
 
+    save_object_to_json(all_dataset, "get_dataset_only_train_dev__output.json")
     return all_dataset
 
 
