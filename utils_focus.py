@@ -48,6 +48,7 @@ def get_dataset_only_train_dev(
                 dataset_enc[name] = list()
                 if debug:
                     dataset["data"] = dataset["data"][:10]
+                    print("slice dataset to 10")
                 for dialogue in dataset["data"]:
                     ID = dialogue["dialogID"]
                     persona = dialogue["persona"]

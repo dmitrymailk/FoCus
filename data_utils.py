@@ -660,6 +660,7 @@ def get_data_loaders(args, tokenizer, generation=False):
             testset = False
         if args.debug:
             dataset = dataset[:10]
+            print("slice dataset to 10")
         for dialog in dataset:
             ID = dialog["dialogID"]
             persona = dialog["persona"]
