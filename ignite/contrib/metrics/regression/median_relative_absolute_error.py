@@ -5,8 +5,12 @@ import torch
 from ignite.metrics import EpochMetric
 
 
-def median_relative_absolute_error_compute_fn(y_pred: torch.Tensor, y: torch.Tensor) -> float:
-    e = torch.abs(y.view_as(y_pred) - y_pred) / torch.abs(y.view_as(y_pred) - torch.mean(y))
+def median_relative_absolute_error_compute_fn(
+    y_pred: torch.Tensor, y: torch.Tensor
+) -> float:
+    e = torch.abs(y.view_as(y_pred) - y_pred) / torch.abs(
+        y.view_as(y_pred) - torch.mean(y)
+    )
     return torch.median(e).item()
 
 
@@ -41,8 +45,12 @@ class MedianRelativeAbsoluteError(EpochMetric):
     """
 
     def __init__(
-        self, output_transform: Callable = lambda x: x, device: Union[str, torch.device] = torch.device("cpu")
+        self,
+        output_transform: Callable = lambda x: x,
+        device: Union[str, torch.device] = torch.device("cpu"),
     ):
         super(MedianRelativeAbsoluteError, self).__init__(
-            median_relative_absolute_error_compute_fn, output_transform=output_transform, device=device
+            median_relative_absolute_error_compute_fn,
+            output_transform=output_transform,
+            device=device,
         )

@@ -6,7 +6,14 @@ import torch
 import ignite.distributed as idist
 from ignite.engine.deterministic import DeterministicEngine
 from ignite.engine.engine import Engine
-from ignite.engine.events import CallableEventWithFilter, EventEnum, Events, EventsList, RemovableEventHandle, State
+from ignite.engine.events import (
+    CallableEventWithFilter,
+    EventEnum,
+    Events,
+    EventsList,
+    RemovableEventHandle,
+    State,
+)
 from ignite.metrics import Metric
 from ignite.utils import convert_tensor
 
@@ -31,11 +38,11 @@ __all__ = [
 
 
 def _prepare_batch(
-    batch: Sequence[torch.Tensor], device: Optional[Union[str, torch.device]] = None, non_blocking: bool = False
+    batch: Sequence[torch.Tensor],
+    device: Optional[Union[str, torch.device]] = None,
+    non_blocking: bool = False,
 ) -> Tuple[Union[torch.Tensor, Sequence, Mapping, str, bytes], ...]:
-    """Prepare batch for training: pass to a device with options.
-
-    """
+    """Prepare batch for training: pass to a device with options."""
     x, y = batch
     return (
         convert_tensor(x, device=device, non_blocking=non_blocking),
@@ -85,7 +92,9 @@ def supervised_training_step(
     .. versionadded:: 0.5.0
     """
 
-    def update(engine: Engine, batch: Sequence[torch.Tensor]) -> Union[Any, Tuple[torch.Tensor]]:
+    def update(
+        engine: Engine, batch: Sequence[torch.Tensor]
+    ) -> Union[Any, Tuple[torch.Tensor]]:
         model.train()
         optimizer.zero_grad()
         x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
@@ -148,7 +157,9 @@ def supervised_training_step_amp(
     except ImportError:
         raise ImportError("Please install torch>=1.6.0 to use amp_mode='amp'.")
 
-    def update(engine: Engine, batch: Sequence[torch.Tensor]) -> Union[Any, Tuple[torch.Tensor]]:
+    def update(
+        engine: Engine, batch: Sequence[torch.Tensor]
+    ) -> Union[Any, Tuple[torch.Tensor]]:
         model.train()
         optimizer.zero_grad()
         x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
@@ -212,9 +223,13 @@ def supervised_training_step_apex(
     try:
         from apex import amp as apex_amp
     except ModuleNotFoundError:
-        raise ModuleNotFoundError("Please install apex from https://github.com/nvidia/apex to use amp_mode='apex'.")
+        raise ModuleNotFoundError(
+            "Please install apex from https://github.com/nvidia/apex to use amp_mode='apex'."
+        )
 
-    def update(engine: Engine, batch: Sequence[torch.Tensor]) -> Union[Any, Tuple[torch.Tensor]]:
+    def update(
+        engine: Engine, batch: Sequence[torch.Tensor]
+    ) -> Union[Any, Tuple[torch.Tensor]]:
         model.train()
         optimizer.zero_grad()
         x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
@@ -272,9 +287,13 @@ def supervised_training_step_tpu(
     try:
         import torch_xla.core.xla_model as xm
     except ModuleNotFoundError:
-        raise ModuleNotFoundError("torch_xla cannot be imported, please install PyTorch XLA.")
+        raise ModuleNotFoundError(
+            "torch_xla cannot be imported, please install PyTorch XLA."
+        )
 
-    def update(engine: Engine, batch: Sequence[torch.Tensor]) -> Union[Any, Tuple[torch.Tensor]]:
+    def update(
+        engine: Engine, batch: Sequence[torch.Tensor]
+    ) -> Union[Any, Tuple[torch.Tensor]]:
         model.train()
         optimizer.zero_grad()
         x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
@@ -288,18 +307,24 @@ def supervised_training_step_tpu(
 
 
 def _check_arg(
-    on_tpu: bool, amp_mode: Optional[str], scaler: Optional[Union[bool, "torch.cuda.amp.GradScaler"]]
+    on_tpu: bool,
+    amp_mode: Optional[str],
+    scaler: Optional[Union[bool, "torch.cuda.amp.GradScaler"]],
 ) -> Tuple[Optional[str], Optional["torch.cuda.amp.GradScaler"]]:
     """Checking tpu, amp and GradScaler instance combinations."""
     if on_tpu and not idist.has_xla_support:
         raise RuntimeError("In order to run on TPU, please install PyTorch XLA")
 
     if amp_mode and on_tpu:
-        raise ValueError("amp_mode cannot be used with xla device. Consider using amp_mode=None or device='cuda'.")
+        raise ValueError(
+            "amp_mode cannot be used with xla device. Consider using amp_mode=None or device='cuda'."
+        )
 
     if scaler:
         if amp_mode != "amp":
-            raise ValueError(f"scaler argument is {scaler}, but amp_mode is {amp_mode}. Consider using amp_mode='amp'.")
+            raise ValueError(
+                f"scaler argument is {scaler}, but amp_mode is {amp_mode}. Consider using amp_mode='amp'."
+            )
         elif amp_mode == "amp" and isinstance(scaler, bool):
             try:
                 from torch.cuda.amp import GradScaler
@@ -392,19 +417,44 @@ def create_supervised_trainer(
 
     if mode == "amp":
         _update = supervised_training_step_amp(
-            model, optimizer, loss_fn, device, non_blocking, prepare_batch, output_transform, _scaler
+            model,
+            optimizer,
+            loss_fn,
+            device,
+            non_blocking,
+            prepare_batch,
+            output_transform,
+            _scaler,
         )
     elif mode == "apex":
         _update = supervised_training_step_apex(
-            model, optimizer, loss_fn, device, non_blocking, prepare_batch, output_transform
+            model,
+            optimizer,
+            loss_fn,
+            device,
+            non_blocking,
+            prepare_batch,
+            output_transform,
         )
     elif mode == "tpu":
         _update = supervised_training_step_tpu(
-            model, optimizer, loss_fn, device, non_blocking, prepare_batch, output_transform
+            model,
+            optimizer,
+            loss_fn,
+            device,
+            non_blocking,
+            prepare_batch,
+            output_transform,
         )
     else:
         _update = supervised_training_step(
-            model, optimizer, loss_fn, device, non_blocking, prepare_batch, output_transform
+            model,
+            optimizer,
+            loss_fn,
+            device,
+            non_blocking,
+            prepare_batch,
+            output_transform,
         )
 
     trainer = Engine(_update) if not deterministic else DeterministicEngine(_update)
@@ -452,7 +502,9 @@ def supervised_evaluation_step(
     .. versionadded:: 0.5.0
     """
 
-    def evaluate_step(engine: Engine, batch: Sequence[torch.Tensor]) -> Union[Any, Tuple[torch.Tensor]]:
+    def evaluate_step(
+        engine: Engine, batch: Sequence[torch.Tensor]
+    ) -> Union[Any, Tuple[torch.Tensor]]:
         model.eval()
         with torch.no_grad():
             x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
@@ -504,7 +556,9 @@ def supervised_evaluation_step_amp(
     except ImportError:
         raise ImportError("Please install torch>=1.6.0 to use amp_mode='amp'.")
 
-    def evaluate_step(engine: Engine, batch: Sequence[torch.Tensor]) -> Union[Any, Tuple[torch.Tensor]]:
+    def evaluate_step(
+        engine: Engine, batch: Sequence[torch.Tensor]
+    ) -> Union[Any, Tuple[torch.Tensor]]:
         model.eval()
         with torch.no_grad():
             x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
@@ -570,9 +624,13 @@ def create_supervised_evaluator(
 
     metrics = metrics or {}
     if mode == "amp":
-        evaluate_step = supervised_evaluation_step_amp(model, device, non_blocking, prepare_batch, output_transform)
+        evaluate_step = supervised_evaluation_step_amp(
+            model, device, non_blocking, prepare_batch, output_transform
+        )
     else:
-        evaluate_step = supervised_evaluation_step(model, device, non_blocking, prepare_batch, output_transform)
+        evaluate_step = supervised_evaluation_step(
+            model, device, non_blocking, prepare_batch, output_transform
+        )
 
     evaluator = Engine(evaluate_step)
 

@@ -184,12 +184,18 @@ class VisdomLogger(BaseLogger):
             password = os.environ.get("VISDOM_PASSWORD", None)
             kwargs["password"] = password
 
-        self.vis = visdom.Visdom(server=server, port=port, raise_exceptions=raise_exceptions, **kwargs)
+        self.vis = visdom.Visdom(
+            server=server, port=port, raise_exceptions=raise_exceptions, **kwargs
+        )
 
         if not self.vis.offline and not self.vis.check_connection():  # type: ignore[attr-defined]
-            raise RuntimeError(f"Failed to connect to Visdom server at {server}. Did you run python -m visdom.server ?")
+            raise RuntimeError(
+                f"Failed to connect to Visdom server at {server}. Did you run python -m visdom.server ?"
+            )
 
-        self.executor = _DummyExecutor()  # type: Union[_DummyExecutor, "ThreadPoolExecutor"]
+        self.executor = (
+            _DummyExecutor()
+        )  # type: Union[_DummyExecutor, "ThreadPoolExecutor"]
         if num_workers > 0:
             self.executor = ThreadPoolExecutor(max_workers=num_workers)
 
@@ -203,7 +209,9 @@ class VisdomLogger(BaseLogger):
     def _create_output_handler(self, *args: Any, **kwargs: Any) -> "OutputHandler":
         return OutputHandler(*args, **kwargs)
 
-    def _create_opt_params_handler(self, *args: Any, **kwargs: Any) -> "OptimizerParamsHandler":
+    def _create_opt_params_handler(
+        self, *args: Any, **kwargs: Any
+    ) -> "OptimizerParamsHandler":
         return OptimizerParamsHandler(*args, **kwargs)
 
 
@@ -213,7 +221,12 @@ class _BaseVisDrawer:
         self.show_legend = show_legend
 
     def add_scalar(
-        self, logger: VisdomLogger, k: str, v: Union[str, float, torch.Tensor], event_name: Any, global_step: int
+        self,
+        logger: VisdomLogger,
+        k: str,
+        v: Union[str, float, torch.Tensor],
+        event_name: Any,
+        global_step: int,
     ) -> None:
         """
         Helper method to log a scalar with VisdomLogger.
@@ -231,7 +244,12 @@ class _BaseVisDrawer:
         if k not in self.windows:
             self.windows[k] = {
                 "win": None,
-                "opts": {"title": k, "xlabel": str(event_name), "ylabel": k, "showlegend": self.show_legend},
+                "opts": {
+                    "title": k,
+                    "xlabel": str(event_name),
+                    "ylabel": k,
+                    "showlegend": self.show_legend,
+                },
             }
 
         update = None if self.windows[k]["win"] is None else "append"
@@ -346,10 +364,14 @@ class OutputHandler(BaseOutputHandler, _BaseVisDrawer):
         global_step_transform: Optional[Callable] = None,
         show_legend: bool = False,
     ):
-        super(OutputHandler, self).__init__(tag, metric_names, output_transform, global_step_transform)
+        super(OutputHandler, self).__init__(
+            tag, metric_names, output_transform, global_step_transform
+        )
         _BaseVisDrawer.__init__(self, show_legend=show_legend)
 
-    def __call__(self, engine: Engine, logger: VisdomLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: VisdomLogger, event_name: Union[str, Events]
+    ) -> None:
 
         if not isinstance(logger, VisdomLogger):
             raise RuntimeError("Handler 'OutputHandler' works only with VisdomLogger")
@@ -368,14 +390,20 @@ class OutputHandler(BaseOutputHandler, _BaseVisDrawer):
 
             values = []  # type: List[Union[float, torch.Tensor]]
             keys = []
-            if isinstance(value, numbers.Number) or isinstance(value, torch.Tensor) and value.ndimension() == 0:
+            if (
+                isinstance(value, numbers.Number)
+                or isinstance(value, torch.Tensor)
+                and value.ndimension() == 0
+            ):
                 values.append(value)  # type: ignore[arg-type]
                 keys.append(key)
             elif isinstance(value, torch.Tensor) and value.ndimension() == 1:
                 values = value  # type: ignore[assignment]
                 keys = [f"{key}/{i}" for i in range(len(value))]
             else:
-                warnings.warn(f"VisdomLogger output_handler can not log metrics value type {type(value)}")
+                warnings.warn(
+                    f"VisdomLogger output_handler can not log metrics value type {type(value)}"
+                )
 
             for k, v in zip(keys, values):
                 k = f"{self.tag}/{k}"
@@ -418,19 +446,29 @@ class OptimizerParamsHandler(BaseOptimizerParamsHandler, _BaseVisDrawer):
     """
 
     def __init__(
-        self, optimizer: Optimizer, param_name: str = "lr", tag: Optional[str] = None, show_legend: bool = False,
+        self,
+        optimizer: Optimizer,
+        param_name: str = "lr",
+        tag: Optional[str] = None,
+        show_legend: bool = False,
     ):
         super(OptimizerParamsHandler, self).__init__(optimizer, param_name, tag)
         _BaseVisDrawer.__init__(self, show_legend=show_legend)
 
-    def __call__(self, engine: Engine, logger: VisdomLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: VisdomLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, VisdomLogger):
-            raise RuntimeError("Handler OptimizerParamsHandler works only with VisdomLogger")
+            raise RuntimeError(
+                "Handler OptimizerParamsHandler works only with VisdomLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
         params = {
-            f"{tag_prefix}{self.param_name}/group_{i}": float(param_group[self.param_name])
+            f"{tag_prefix}{self.param_name}/group_{i}": float(
+                param_group[self.param_name]
+            )
             for i, param_group in enumerate(self.optimizer.param_groups)
         }
 
@@ -469,15 +507,23 @@ class WeightsScalarHandler(BaseWeightsScalarHandler, _BaseVisDrawer):
     """
 
     def __init__(
-        self, model: nn.Module, reduction: Callable = torch.norm, tag: Optional[str] = None, show_legend: bool = False,
+        self,
+        model: nn.Module,
+        reduction: Callable = torch.norm,
+        tag: Optional[str] = None,
+        show_legend: bool = False,
     ):
         super(WeightsScalarHandler, self).__init__(model, reduction, tag=tag)
         _BaseVisDrawer.__init__(self, show_legend=show_legend)
 
-    def __call__(self, engine: Engine, logger: VisdomLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: VisdomLogger, event_name: Union[str, Events]
+    ) -> None:
 
         if not isinstance(logger, VisdomLogger):
-            raise RuntimeError("Handler 'WeightsScalarHandler' works only with VisdomLogger")
+            raise RuntimeError(
+                "Handler 'WeightsScalarHandler' works only with VisdomLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
@@ -520,14 +566,22 @@ class GradsScalarHandler(BaseWeightsScalarHandler, _BaseVisDrawer):
     """
 
     def __init__(
-        self, model: nn.Module, reduction: Callable = torch.norm, tag: Optional[str] = None, show_legend: bool = False,
+        self,
+        model: nn.Module,
+        reduction: Callable = torch.norm,
+        tag: Optional[str] = None,
+        show_legend: bool = False,
     ):
         super(GradsScalarHandler, self).__init__(model, reduction, tag)
         _BaseVisDrawer.__init__(self, show_legend=show_legend)
 
-    def __call__(self, engine: Engine, logger: VisdomLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: VisdomLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, VisdomLogger):
-            raise RuntimeError("Handler 'GradsScalarHandler' works only with VisdomLogger")
+            raise RuntimeError(
+                "Handler 'GradsScalarHandler' works only with VisdomLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""

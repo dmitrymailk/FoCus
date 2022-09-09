@@ -12,10 +12,17 @@ from ignite.engine.engine import Engine
 from ignite.engine.events import Events
 from ignite.utils import manual_seed
 
-__all__ = ["update_dataloader", "keep_random_state", "ReproducibleBatchSampler", "DeterministicEngine"]
+__all__ = [
+    "update_dataloader",
+    "keep_random_state",
+    "ReproducibleBatchSampler",
+    "DeterministicEngine",
+]
 
 
-def update_dataloader(dataloader: DataLoader, new_batch_sampler: BatchSampler) -> DataLoader:
+def update_dataloader(
+    dataloader: DataLoader, new_batch_sampler: BatchSampler
+) -> DataLoader:
     """Helper function to replace current batch sampler of the dataloader by a new batch sampler. Function returns new
     dataloader with new batch sampler.
 
@@ -56,9 +63,13 @@ class ReproducibleBatchSampler(BatchSampler):
         start_iteration: optional start iteration.
     """
 
-    def __init__(self, batch_sampler: BatchSampler, start_iteration: Optional[int] = None):
+    def __init__(
+        self, batch_sampler: BatchSampler, start_iteration: Optional[int] = None
+    ):
         if not isinstance(batch_sampler, BatchSampler):
-            raise TypeError("Argument batch_sampler should be torch.utils.data.sampler.BatchSampler")
+            raise TypeError(
+                "Argument batch_sampler should be torch.utils.data.sampler.BatchSampler"
+            )
 
         self.batch_indices = []  # type: List
         self.batch_sampler = batch_sampler
@@ -176,7 +187,10 @@ class DeterministicEngine(Engine):
         super(DeterministicEngine, self).__init__(process_function)
         self.state_dict_user_keys.append("rng_states")
         self.add_event_handler(Events.STARTED, self._init_run)
-        self.add_event_handler(Events.DATALOADER_STOP_ITERATION | Events.TERMINATE_SINGLE_EPOCH, self._setup_seed)
+        self.add_event_handler(
+            Events.DATALOADER_STOP_ITERATION | Events.TERMINATE_SINGLE_EPOCH,
+            self._setup_seed,
+        )
 
     def state_dict(self) -> OrderedDict:
         state_dict = super(DeterministicEngine, self).state_dict()
@@ -211,7 +225,9 @@ class DeterministicEngine(Engine):
                 _dataloader_kind = self.state.dataloader._dataset_kind
                 can_patch_dataloader = _dataloader_kind == _DatasetKind.Map
             if can_patch_dataloader:
-                if self._dataloader_len is not None and hasattr(self.state.dataloader.sampler, "epoch"):
+                if self._dataloader_len is not None and hasattr(
+                    self.state.dataloader.sampler, "epoch"
+                ):
                     if self._dataloader_len != self.state.epoch_length:
                         warnings.warn(
                             "When defined engine's epoch length is different of input dataloader length, "
@@ -219,7 +235,10 @@ class DeterministicEngine(Engine):
                         )
 
                 batch_sampler = self.state.dataloader.batch_sampler
-                if not (batch_sampler is None or isinstance(batch_sampler, ReproducibleBatchSampler)):
+                if not (
+                    batch_sampler is None
+                    or isinstance(batch_sampler, ReproducibleBatchSampler)
+                ):
                     self.state.dataloader = update_dataloader(
                         self.state.dataloader, ReproducibleBatchSampler(batch_sampler)  # type: ignore[arg-type]
                     )
@@ -233,7 +252,11 @@ class DeterministicEngine(Engine):
         self._init_iter.append(iteration)
 
         # restore rng state if in the middle
-        in_the_middle = self.state.iteration % self._dataloader_len > 0 if self._dataloader_len is not None else False
+        in_the_middle = (
+            self.state.iteration % self._dataloader_len > 0
+            if self._dataloader_len is not None
+            else False
+        )
         rng_states = getattr(self.state, "rng_states", None)
         if rng_states is not None and in_the_middle:
             _set_rng_states(rng_states)
@@ -259,7 +282,9 @@ class DeterministicEngine(Engine):
                 # Probably we can do nothing with DataLoader built upon IterableDatasets
                 pass
 
-        self.logger.info("Resuming from iteration for provided data will fetch data until required iteration ...")
+        self.logger.info(
+            "Resuming from iteration for provided data will fetch data until required iteration ..."
+        )
         if hasattr(data, "__len__"):
             iteration %= len(data)  # type: ignore[arg-type]
         # Synchronize dataflow from the begining
@@ -275,7 +300,12 @@ class DeterministicEngine(Engine):
 
         return data_iter
 
-    def _setup_seed(self, _: Any = None, iter_counter: Optional[int] = None, iteration: Optional[int] = None) -> None:
+    def _setup_seed(
+        self,
+        _: Any = None,
+        iter_counter: Optional[int] = None,
+        iteration: Optional[int] = None,
+    ) -> None:
         if iter_counter is None:
             le = self._dataloader_len if self._dataloader_len is not None else 1
         elif not iter_counter > 0:

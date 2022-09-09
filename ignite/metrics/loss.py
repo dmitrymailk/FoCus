@@ -69,5 +69,7 @@ class Loss(Metric):
     @sync_all_reduce("_sum", "_num_examples")
     def compute(self) -> float:
         if self._num_examples == 0:
-            raise NotComputableError("Loss must have at least one example before it can be computed.")
+            raise NotComputableError(
+                "Loss must have at least one example before it can be computed."
+            )
         return self._sum.item() / self._num_examples

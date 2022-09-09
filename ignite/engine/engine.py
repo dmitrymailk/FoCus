@@ -11,7 +11,14 @@ from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tupl
 from torch.utils.data import DataLoader
 
 from ignite.base import Serializable
-from ignite.engine.events import CallableEventWithFilter, EventEnum, Events, EventsList, RemovableEventHandle, State
+from ignite.engine.events import (
+    CallableEventWithFilter,
+    EventEnum,
+    Events,
+    EventsList,
+    RemovableEventHandle,
+    State,
+)
 from ignite.engine.utils import _check_signature, _to_hours_mins_secs
 
 __all__ = ["Engine"]
@@ -138,12 +145,16 @@ class Engine(Serializable):
         self.register_events(*Events)
 
         if self._process_function is None:
-            raise ValueError("Engine must be given a processing function in order to run.")
+            raise ValueError(
+                "Engine must be given a processing function in order to run."
+            )
 
         _check_signature(process_function, "process_function", self, None)
 
     def register_events(
-        self, *event_names: Union[List[str], List[EventEnum]], event_to_attr: Optional[dict] = None
+        self,
+        *event_names: Union[List[str], List[EventEnum]],
+        event_to_attr: Optional[dict] = None,
     ) -> None:
         """Add events that can be fired.
 
@@ -217,18 +228,24 @@ class Engine(Serializable):
             # engine.state contains an attribute time_iteration, which can be accessed using engine.state.time_iteration
         """
         if not (event_to_attr is None or isinstance(event_to_attr, dict)):
-            raise ValueError(f"Expected event_to_attr to be dictionary. Got {type(event_to_attr)}.")
+            raise ValueError(
+                f"Expected event_to_attr to be dictionary. Got {type(event_to_attr)}."
+            )
 
         for index, e in enumerate(event_names):
             if not isinstance(e, (str, EventEnum)):
-                raise TypeError(f"Value at {index} of event_names should be a str or EventEnum, but given {e}")
+                raise TypeError(
+                    f"Value at {index} of event_names should be a str or EventEnum, but given {e}"
+                )
             self._allowed_events.append(e)
             if event_to_attr and e in event_to_attr:
                 State.event_to_attr[e] = event_to_attr[e]
         # we need to update state attributes associated with new custom events
         self.state._update_attrs()
 
-    def _handler_wrapper(self, handler: Callable, event_name: Any, event_filter: Callable) -> Callable:
+    def _handler_wrapper(
+        self, handler: Callable, event_name: Any, event_filter: Callable
+    ) -> Callable:
         # signature of the following wrapper will be inspected during registering to check if engine is necessary
         # we have to build a wrapper with relevant signature : solution is functools.wraps
         @functools.wraps(handler)
@@ -243,10 +260,16 @@ class Engine(Serializable):
 
     def _assert_allowed_event(self, event_name: Any) -> None:
         if event_name not in self._allowed_events:
-            self.logger.error(f"attempt to add event handler to an invalid event {event_name}")
-            raise ValueError(f"Event {event_name} is not a valid event for this {self.__class__.__name__}.")
+            self.logger.error(
+                f"attempt to add event handler to an invalid event {event_name}"
+            )
+            raise ValueError(
+                f"Event {event_name} is not a valid event for this {self.__class__.__name__}."
+            )
 
-    def add_event_handler(self, event_name: Any, handler: Callable, *args: Any, **kwargs: Any) -> RemovableEventHandle:
+    def add_event_handler(
+        self, event_name: Any, handler: Callable, *args: Any, **kwargs: Any
+    ) -> RemovableEventHandle:
         """Add an event handler to be executed when the specified event is fired.
 
         Args:
@@ -321,10 +344,13 @@ class Engine(Serializable):
             and event_name.filter != CallableEventWithFilter.default_event_filter
         ):
             raise TypeError(
-                "Argument event_name should not be a filtered event, " "please use event without any event filtering"
+                "Argument event_name should not be a filtered event, "
+                "please use event without any event filtering"
             )
 
-    def has_event_handler(self, handler: Callable, event_name: Optional[Any] = None) -> bool:
+    def has_event_handler(
+        self, handler: Callable, event_name: Optional[Any] = None
+    ) -> bool:
         """Check if the specified event has the specified handler.
 
         Args:
@@ -367,7 +393,9 @@ class Engine(Serializable):
             if not self._compare_handlers(handler, h)
         ]
         if len(new_event_handlers) == len(self._event_handlers[event_name]):
-            raise ValueError(f"Input handler '{handler}' is not found among registered event handlers")
+            raise ValueError(
+                f"Input handler '{handler}' is not found among registered event handlers"
+            )
         self._event_handlers[event_name] = new_event_handlers
 
     def on(self, event_name: Any, *args: Any, **kwargs: Any) -> Callable:
@@ -401,7 +429,9 @@ class Engine(Serializable):
 
         return decorator
 
-    def _fire_event(self, event_name: Any, *event_args: Any, **event_kwargs: Any) -> None:
+    def _fire_event(
+        self, event_name: Any, *event_args: Any, **event_kwargs: Any
+    ) -> None:
         """Execute all the handlers associated with given event.
 
         This method executes all handlers associated with the event
@@ -421,7 +451,9 @@ class Engine(Serializable):
         self.last_event_name = event_name
         for func, args, kwargs in self._event_handlers[event_name]:
             kwargs.update(event_kwargs)
-            first, others = ((args[0],), args[1:]) if (args and args[0] == self) else ((), args)
+            first, others = (
+                ((args[0],), args[1:]) if (args and args[0] == self) else ((), args)
+            )
             func(*first, *(event_args + others), **kwargs)
 
     def fire_event(self, event_name: Any) -> None:
@@ -449,14 +481,14 @@ class Engine(Serializable):
         return self._fire_event(event_name)
 
     def terminate(self) -> None:
-        """Sends terminate signal to the engine, so that it terminates completely the run after the current iteration.
-        """
-        self.logger.info("Terminate signaled. Engine will stop after current iteration is finished.")
+        """Sends terminate signal to the engine, so that it terminates completely the run after the current iteration."""
+        self.logger.info(
+            "Terminate signaled. Engine will stop after current iteration is finished."
+        )
         self.should_terminate = True
 
     def terminate_epoch(self) -> None:
-        """Sends terminate signal to the engine, so that it terminates the current epoch after the current iteration.
-        """
+        """Sends terminate signal to the engine, so that it terminates the current epoch after the current iteration."""
         self.logger.info(
             "Terminate current epoch is signaled. "
             "Current epoch iteration will stop after current iteration is finished."
@@ -500,7 +532,9 @@ class Engine(Serializable):
                 a dictionary containing engine's state
 
         """
-        keys = self._state_dict_all_req_keys + (self._state_dict_one_of_opt_keys[0],)  # type: Tuple[str, ...]
+        keys = self._state_dict_all_req_keys + (
+            self._state_dict_one_of_opt_keys[0],
+        )  # type: Tuple[str, ...]
         keys += tuple(self._state_dict_user_keys)
         return OrderedDict([(k, getattr(self.state, k)) for k in keys])
 
@@ -556,13 +590,17 @@ class Engine(Serializable):
 
     @staticmethod
     def _is_done(state: State) -> bool:
-        is_done_iters = state.max_iters is not None and state.iteration >= state.max_iters
+        is_done_iters = (
+            state.max_iters is not None and state.iteration >= state.max_iters
+        )
         is_done_count = (
             state.epoch_length is not None
             and state.max_epochs is not None
             and state.iteration >= state.epoch_length * state.max_epochs
         )
-        is_done_epochs = state.max_epochs is not None and state.epoch >= state.max_epochs
+        is_done_epochs = (
+            state.max_epochs is not None and state.epoch >= state.max_epochs
+        )
         return is_done_iters or is_done_count or is_done_epochs
 
     def set_data(self, data: Union[Iterable, DataLoader]) -> None:
@@ -685,7 +723,9 @@ class Engine(Serializable):
             if epoch_length is None:
                 epoch_length = self._get_data_length(data)
                 if epoch_length is not None and epoch_length < 1:
-                    raise ValueError("Input data has zero size. Please provide non-empty data")
+                    raise ValueError(
+                        "Input data has zero size. Please provide non-empty data"
+                    )
 
             if max_iters is None:
                 if max_epochs is None:
@@ -767,7 +807,9 @@ class Engine(Serializable):
                 # update time wrt handlers
                 self.state.times[Events.EPOCH_COMPLETED.name] = time_taken
                 hours, mins, secs = _to_hours_mins_secs(time_taken)
-                self.logger.info(f"Epoch[{self.state.epoch}] Complete. Time taken: {hours:02d}:{mins:02d}:{secs:02d}")
+                self.logger.info(
+                    f"Epoch[{self.state.epoch}] Complete. Time taken: {hours:02d}:{mins:02d}:{secs:02d}"
+                )
                 if self.should_terminate:
                     break
 
@@ -780,7 +822,9 @@ class Engine(Serializable):
             # update time wrt handlers
             self.state.times[Events.COMPLETED.name] = time_taken
             hours, mins, secs = _to_hours_mins_secs(time_taken)
-            self.logger.info(f"Engine run complete. Time taken: {hours:02d}:{mins:02d}:{secs:02d}")
+            self.logger.info(
+                f"Engine run complete. Time taken: {hours:02d}:{mins:02d}:{secs:02d}"
+            )
 
         except BaseException as e:
             self._dataloader_iter = None
@@ -821,7 +865,9 @@ class Engine(Serializable):
                         # Define epoch length and stop the epoch
                         self.state.epoch_length = iter_counter
                         if self.state.max_iters is not None:
-                            self.state.max_epochs = math.ceil(self.state.max_iters / self.state.epoch_length)
+                            self.state.max_epochs = math.ceil(
+                                self.state.max_iters / self.state.epoch_length
+                            )
                         break
 
                     # Should exit while loop if we can not iterate
@@ -856,15 +902,23 @@ class Engine(Serializable):
                 # self.state.batch = None
 
                 if self.should_terminate or self.should_terminate_single_epoch:
-                    self._fire_event(Events.TERMINATE_SINGLE_EPOCH, iter_counter=iter_counter)
+                    self._fire_event(
+                        Events.TERMINATE_SINGLE_EPOCH, iter_counter=iter_counter
+                    )
                     self.should_terminate_single_epoch = False
                     self.set_data(self.state.dataloader)
                     break
 
-                if self.state.epoch_length is not None and iter_counter == self.state.epoch_length:
+                if (
+                    self.state.epoch_length is not None
+                    and iter_counter == self.state.epoch_length
+                ):
                     break
 
-                if self.state.max_iters is not None and self.state.iteration == self.state.max_iters:
+                if (
+                    self.state.max_iters is not None
+                    and self.state.iteration == self.state.max_iters
+                ):
                     self.should_terminate = True
                     break
 

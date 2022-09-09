@@ -47,8 +47,12 @@ class MeanAbsoluteRelativeError(_BaseRegression):
         y_pred, y = output[0].detach(), output[1].detach()
         if (y == 0).any():
             raise NotComputableError("The ground truth has 0.")
-        absolute_error = torch.abs(y_pred - y.view_as(y_pred)) / torch.abs(y.view_as(y_pred))
-        self._sum_of_absolute_relative_errors += torch.sum(absolute_error).to(self._device)
+        absolute_error = torch.abs(y_pred - y.view_as(y_pred)) / torch.abs(
+            y.view_as(y_pred)
+        )
+        self._sum_of_absolute_relative_errors += torch.sum(absolute_error).to(
+            self._device
+        )
         self._num_samples += y.size()[0]
 
     @sync_all_reduce("_sum_of_absolute_relative_errors", "_num_samples")

@@ -94,7 +94,9 @@ class EarlyStopping(Serializable):
         """Method returns state dict with ``counter`` and ``best_score``.
         Can be used to save internal state of the class.
         """
-        return OrderedDict([("counter", self.counter), ("best_score", cast(float, self.best_score))])
+        return OrderedDict(
+            [("counter", self.counter), ("best_score", cast(float, self.best_score))]
+        )
 
     def load_state_dict(self, state_dict: Mapping) -> None:
         """Method replace internal state of the class with provided state dict data.

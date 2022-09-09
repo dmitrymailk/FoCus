@@ -22,7 +22,9 @@ class ComputationModel(metaclass=ABCMeta):
 
     def _setup_attrs(self) -> None:
         if self._nproc_per_node is None:
-            self._nproc_per_node = self._compute_nproc_per_node() if self.get_world_size() > 1 else 1
+            self._nproc_per_node = (
+                self._compute_nproc_per_node() if self.get_world_size() > 1 else 1
+            )
         if self._nnodes is None:
             self._nnodes = self.get_world_size() // self._nproc_per_node
         if self._node is None:
@@ -95,7 +97,12 @@ class ComputationModel(metaclass=ABCMeta):
         return padded_x.unsqueeze(0)
 
     def _get_max_length(self, x: str, device: torch.device) -> int:
-        size = torch.tensor([len(x),], device=device)
+        size = torch.tensor(
+            [
+                len(x),
+            ],
+            device=device,
+        )
         size = self._do_all_reduce(size, "MAX")
         return cast(int, size.item())
 
@@ -106,7 +113,12 @@ class ComputationModel(metaclass=ABCMeta):
         return out
 
     def _apply_op(
-        self, tensor: torch.Tensor, device: torch.device, fn: Callable, *args: Any, **kwargs: Any
+        self,
+        tensor: torch.Tensor,
+        device: torch.device,
+        fn: Callable,
+        *args: Any,
+        **kwargs: Any,
     ) -> torch.Tensor:
         out_dtype = None
         tensor_device = None
@@ -133,13 +145,19 @@ class ComputationModel(metaclass=ABCMeta):
         return tensor
 
     def _collective_op(
-        self, tensor: Union[torch.Tensor, float, str], fn: Callable, *args: Any, **kwargs: Any
+        self,
+        tensor: Union[torch.Tensor, float, str],
+        fn: Callable,
+        *args: Any,
+        **kwargs: Any,
     ) -> Union[torch.Tensor, float, List[float], List[str]]:
         tensor_to_number = tensor_to_str = False
         device = self.device()
         if isinstance(tensor, (Number, float)):
             tensor_to_number = True
-            tensor = torch.tensor(tensor, device=device, dtype=self._collective_op_dtype)
+            tensor = torch.tensor(
+                tensor, device=device, dtype=self._collective_op_dtype
+            )
         elif isinstance(tensor, str):
             tensor_to_str = True
             max_length = self._get_max_length(tensor, device)
@@ -156,19 +174,28 @@ class ComputationModel(metaclass=ABCMeta):
             return self._decode_str(tensor)
         return tensor
 
-    def all_reduce(self, tensor: Union[torch.Tensor, float], op: str = "sum") -> Union[torch.Tensor, float]:
+    def all_reduce(
+        self, tensor: Union[torch.Tensor, float], op: str = "sum"
+    ) -> Union[torch.Tensor, float]:
         if not isinstance(tensor, (torch.Tensor, Number)):
             raise TypeError(f"Unhandled input type {type(tensor)}")
 
-        return cast(Union[torch.Tensor, float], self._collective_op(tensor, self._do_all_reduce, op))
+        return cast(
+            Union[torch.Tensor, float],
+            self._collective_op(tensor, self._do_all_reduce, op),
+        )
 
-    def all_gather(self, tensor: Union[torch.Tensor, float, str]) -> Union[torch.Tensor, float, List[float], List[str]]:
+    def all_gather(
+        self, tensor: Union[torch.Tensor, float, str]
+    ) -> Union[torch.Tensor, float, List[float], List[str]]:
         if not isinstance(tensor, (torch.Tensor, Number, str)):
             raise TypeError(f"Unhandled input type {type(tensor)}")
 
         return self._collective_op(tensor, self._do_all_gather)
 
-    def broadcast(self, tensor: Union[torch.Tensor, float, str], src: int = 0) -> Union[torch.Tensor, float, str]:
+    def broadcast(
+        self, tensor: Union[torch.Tensor, float, str], src: int = 0
+    ) -> Union[torch.Tensor, float, str]:
         if not isinstance(tensor, (torch.Tensor, Number, str)):
             raise TypeError(f"Unhandled input type {type(tensor)}")
 
@@ -181,7 +208,13 @@ class ComputationModel(metaclass=ABCMeta):
             if rank != src:
                 tensor = torch.empty(1, device=device, dtype=torch.float)
             else:
-                tensor = torch.tensor([tensor,], device=device, dtype=torch.float)
+                tensor = torch.tensor(
+                    [
+                        tensor,
+                    ],
+                    device=device,
+                    dtype=torch.float,
+                )
         elif isinstance(tensor, str):
             tensor_to_str = True
             max_length = self._get_max_length(tensor, device)
@@ -217,8 +250,7 @@ class ComputationModel(metaclass=ABCMeta):
 
 
 class _SerialModel(ComputationModel):
-    """Private class defines non-distributed computation model for code compatibility with other distributed models.
-    """
+    """Private class defines non-distributed computation model for code compatibility with other distributed models."""
 
     name = "serial"
     available_backends = ()
@@ -263,22 +295,32 @@ class _SerialModel(ComputationModel):
         return _SerialModel()
 
     @staticmethod
-    def create_from_backend(backend: Optional[str] = None, **kwargs: Any) -> "_SerialModel":
+    def create_from_backend(
+        backend: Optional[str] = None, **kwargs: Any
+    ) -> "_SerialModel":
         return _SerialModel()
 
     @staticmethod
     def spawn(*args: Any, **kwargs: Any) -> None:
-        raise NotImplementedError("Serial computation model does not implement spawn method")
+        raise NotImplementedError(
+            "Serial computation model does not implement spawn method"
+        )
 
-    def all_reduce(self, tensor: Union[torch.Tensor, float], op: str = "SUM") -> Union[torch.Tensor, float]:
+    def all_reduce(
+        self, tensor: Union[torch.Tensor, float], op: str = "SUM"
+    ) -> Union[torch.Tensor, float]:
         return tensor
 
-    def all_gather(self, tensor: Union[torch.Tensor, float, str]) -> Union[torch.Tensor, float, List[float], List[str]]:
+    def all_gather(
+        self, tensor: Union[torch.Tensor, float, str]
+    ) -> Union[torch.Tensor, float, List[float], List[str]]:
         if isinstance(tensor, torch.Tensor):
             return tensor
         return cast(Union[List[float], List[str]], [tensor])
 
-    def broadcast(self, tensor: Union[torch.Tensor, float, str], src: int = 0) -> Union[torch.Tensor, float, str]:
+    def broadcast(
+        self, tensor: Union[torch.Tensor, float, str], src: int = 0
+    ) -> Union[torch.Tensor, float, str]:
         return tensor
 
     def _do_all_reduce(self, tensor: torch.Tensor, op: str = "SUM") -> torch.Tensor:

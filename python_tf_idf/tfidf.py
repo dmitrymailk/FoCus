@@ -12,7 +12,7 @@ class TfIdf:
         # building a dictionary
         doc_dict = {}
         for w in list_of_words:
-            doc_dict[w] = doc_dict.get(w, 0.) + 1.0
+            doc_dict[w] = doc_dict.get(w, 0.0) + 1.0
             self.corpus_dict[w] = self.corpus_dict.get(w, 0.0) + 1.0
 
         # normalizing the dictionary
@@ -25,7 +25,7 @@ class TfIdf:
 
     def similarities(self, list_of_words):
         """Returns a list of all the [docname, similarity_score] pairs relative to a
-list of words.
+        list of words.
 
         """
 
@@ -46,7 +46,9 @@ list of words.
             doc_dict = doc[1]
             for k in query_dict:
                 if k in doc_dict:
-                    score += (query_dict[k] / self.corpus_dict[k]) + (doc_dict[k] / self.corpus_dict[k])
+                    score += (query_dict[k] / self.corpus_dict[k]) + (
+                        doc_dict[k] / self.corpus_dict[k]
+                    )
             sims.append([doc[0], score])
 
         return sims

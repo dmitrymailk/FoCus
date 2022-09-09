@@ -218,29 +218,51 @@ class Parallel:
     ) -> None:
         if backend is not None:
             if backend not in idist.available_backends():
-                raise ValueError(f"Unknown backend '{backend}'. Available backends: {idist.available_backends()}")
+                raise ValueError(
+                    f"Unknown backend '{backend}'. Available backends: {idist.available_backends()}"
+                )
         else:
-            arg_names = ["nproc_per_node", "nnodes", "node_rank", "master_addr", "master_port"]
+            arg_names = [
+                "nproc_per_node",
+                "nnodes",
+                "node_rank",
+                "master_addr",
+                "master_port",
+            ]
             arg_values = [nproc_per_node, nnodes, node_rank, master_addr, master_port]
             for name, value in zip(arg_names, arg_values):
                 if value is not None:
-                    raise ValueError(f"If backend is None, argument '{name}' should be also None, but given {value}")
+                    raise ValueError(
+                        f"If backend is None, argument '{name}' should be also None, but given {value}"
+                    )
 
         self.backend = backend
         self._spawn_params = None
         self.init_method = init_method
-        self.logger = setup_logger(__name__ + "." + self.__class__.__name__, distributed_rank=0)
+        self.logger = setup_logger(
+            __name__ + "." + self.__class__.__name__, distributed_rank=0
+        )
         # distributed_rank=0 <=> explicit rank 0, avoid call idist. Critical for TPU on Colab, avoid context setup
 
         if self.backend is not None:
             if nproc_per_node is not None:
                 self._spawn_params = self._setup_spawn_params(
-                    nproc_per_node, nnodes, node_rank, master_addr, master_port, init_method, **spawn_kwargs
+                    nproc_per_node,
+                    nnodes,
+                    node_rank,
+                    master_addr,
+                    master_port,
+                    init_method,
+                    **spawn_kwargs,
                 )
 
         if self._spawn_params is not None:
-            self.logger.info(f"Initialized distributed launcher with backend: '{self.backend}'")
-            msg = "\n\t".join([f"{k}: {v}" for k, v in self._spawn_params.items() if v is not None])
+            self.logger.info(
+                f"Initialized distributed launcher with backend: '{self.backend}'"
+            )
+            msg = "\n\t".join(
+                [f"{k}: {v}" for k, v in self._spawn_params.items() if v is not None]
+            )
             self.logger.info(f"- Parameters to spawn processes: \n\t{msg}")
 
     @staticmethod
@@ -254,18 +276,26 @@ class Parallel:
         **spawn_kwargs: Any,
     ) -> Dict:
         if nproc_per_node < 1:
-            raise ValueError(f"Argument nproc_per_node should positive, but given {nproc_per_node}")
+            raise ValueError(
+                f"Argument nproc_per_node should positive, but given {nproc_per_node}"
+            )
         if nnodes is None:
             nnodes = 1
         if nnodes < 1:
             raise ValueError(f"Argument nnodes should positive, but given {nnodes}")
         if node_rank is None:
             if nnodes > 1:
-                raise ValueError("If number of nodes larger than one, arguments node_rank should be given")
+                raise ValueError(
+                    "If number of nodes larger than one, arguments node_rank should be given"
+                )
             node_rank = 0
         if node_rank >= nnodes or node_rank < 0:
-            raise ValueError(f"Argument node_rank should be between 0 and {nnodes - 1}, but given {node_rank}")
-        if nnodes > 1 and (master_addr is None or master_port is None or init_method is None):
+            raise ValueError(
+                f"Argument node_rank should be between 0 and {nnodes - 1}, but given {node_rank}"
+            )
+        if nnodes > 1 and (
+            master_addr is None or master_port is None or init_method is None
+        ):
             raise ValueError(
                 "If number of nodes larger than one, arguments master_addr and master_port or init_method"
                 f"should be specified, but given master_addr={master_addr}, master_port={master_port} and "
@@ -305,8 +335,12 @@ class Parallel:
 
         """
         if self._spawn_params is not None and self.backend is not None:
-            self.logger.info(f"Spawn function '{func}' in {self._spawn_params['nproc_per_node']} processes")
-            idist.spawn(self.backend, func, args=args, kwargs_dict=kwargs, **self._spawn_params)
+            self.logger.info(
+                f"Spawn function '{func}' in {self._spawn_params['nproc_per_node']} processes"
+            )
+            idist.spawn(
+                self.backend, func, args=args, kwargs_dict=kwargs, **self._spawn_params
+            )
         else:
             self.logger.info(f"- Run '{func}' in {idist.get_world_size()} processes")
             local_rank = idist.get_local_rank()
@@ -318,11 +352,15 @@ class Parallel:
         if (self.backend is not None) and self._spawn_params is None:
             idist.initialize(self.backend, init_method=self.init_method)
             self.logger = setup_logger(__name__ + "." + self.__class__.__name__)
-            self.logger.info(f"Initialized processing group with backend: '{self.backend}'")
+            self.logger.info(
+                f"Initialized processing group with backend: '{self.backend}'"
+            )
 
         return self
 
     def __exit__(self, *args: Any, **kwargs: Any) -> None:
         if (self.backend is not None) and self._spawn_params is None:
-            self.logger.info(f"Finalized processing group with backend: '{self.backend}'")
+            self.logger.info(
+                f"Finalized processing group with backend: '{self.backend}'"
+            )
             idist.finalize()

@@ -7,7 +7,16 @@ from ignite.exceptions import NotComputableError
 from ignite.metrics.metric import Metric, reinit__is_reduced, sync_all_reduce
 from ignite.metrics.metrics_lambda import MetricsLambda
 
-__all__ = ["ConfusionMatrix", "mIoU", "IoU", "DiceCoefficient", "cmAccuracy", "cmPrecision", "cmRecall", "JaccardIndex"]
+__all__ = [
+    "ConfusionMatrix",
+    "mIoU",
+    "IoU",
+    "DiceCoefficient",
+    "cmAccuracy",
+    "cmPrecision",
+    "cmRecall",
+    "JaccardIndex",
+]
 
 
 class ConfusionMatrix(Metric):
@@ -71,7 +80,9 @@ class ConfusionMatrix(Metric):
         device: Union[str, torch.device] = torch.device("cpu"),
     ):
         if average is not None and average not in ("samples", "recall", "precision"):
-            raise ValueError("Argument average can None or one of 'samples', 'recall', 'precision'")
+            raise ValueError(
+                "Argument average can None or one of 'samples', 'recall', 'precision'"
+            )
 
         if num_classes <= 1:
             raise ValueError("Argument num_classes needs to be > 1")
@@ -79,11 +90,15 @@ class ConfusionMatrix(Metric):
         self.num_classes = num_classes
         self._num_examples = 0
         self.average = average
-        super(ConfusionMatrix, self).__init__(output_transform=output_transform, device=device)
+        super(ConfusionMatrix, self).__init__(
+            output_transform=output_transform, device=device
+        )
 
     @reinit__is_reduced
     def reset(self) -> None:
-        self.confusion_matrix = torch.zeros(self.num_classes, self.num_classes, dtype=torch.int64, device=self._device)
+        self.confusion_matrix = torch.zeros(
+            self.num_classes, self.num_classes, dtype=torch.int64, device=self._device
+        )
         self._num_examples = 0
 
     def _check_shape(self, output: Sequence[torch.Tensor]) -> None:
@@ -96,7 +111,9 @@ class ConfusionMatrix(Metric):
             )
 
         if y_pred.shape[1] != self.num_classes:
-            raise ValueError(f"y_pred does not have correct number of classes: {y_pred.shape[1]} vs {self.num_classes}")
+            raise ValueError(
+                f"y_pred does not have correct number of classes: {y_pred.shape[1]} vs {self.num_classes}"
+            )
 
         if not (y.ndimension() + 1 == y_pred.ndimension()):
             raise ValueError(
@@ -130,13 +147,17 @@ class ConfusionMatrix(Metric):
         y_pred = y_pred[target_mask]
 
         indices = self.num_classes * y + y_pred
-        m = torch.bincount(indices, minlength=self.num_classes ** 2).reshape(self.num_classes, self.num_classes)
+        m = torch.bincount(indices, minlength=self.num_classes**2).reshape(
+            self.num_classes, self.num_classes
+        )
         self.confusion_matrix += m.to(self.confusion_matrix)
 
     @sync_all_reduce("confusion_matrix", "_num_examples")
     def compute(self) -> torch.Tensor:
         if self._num_examples == 0:
-            raise NotComputableError("Confusion matrix must have at least one example before it can be computed.")
+            raise NotComputableError(
+                "Confusion matrix must have at least one example before it can be computed."
+            )
         if self.average:
             self.confusion_matrix = self.confusion_matrix.float()
             if self.average == "samples":
@@ -153,7 +174,9 @@ class ConfusionMatrix(Metric):
         elif average == "precision":
             return matrix / (matrix.sum(dim=0) + 1e-15)
         else:
-            raise ValueError("Argument average should be one of 'samples', 'recall', 'precision'")
+            raise ValueError(
+                "Argument average should be one of 'samples', 'recall', 'precision'"
+            )
 
 
 def IoU(cm: ConfusionMatrix, ignore_index: Optional[int] = None) -> MetricsLambda:
@@ -182,24 +205,37 @@ def IoU(cm: ConfusionMatrix, ignore_index: Optional[int] = None) -> MetricsLambd
 
     """
     if not isinstance(cm, ConfusionMatrix):
-        raise TypeError(f"Argument cm should be instance of ConfusionMatrix, but given {type(cm)}")
+        raise TypeError(
+            f"Argument cm should be instance of ConfusionMatrix, but given {type(cm)}"
+        )
 
     if not (cm.average in (None, "samples")):
-        raise ValueError("ConfusionMatrix should have average attribute either None or 'samples'")
+        raise ValueError(
+            "ConfusionMatrix should have average attribute either None or 'samples'"
+        )
 
     if ignore_index is not None:
-        if not (isinstance(ignore_index, numbers.Integral) and 0 <= ignore_index < cm.num_classes):
-            raise ValueError(f"ignore_index should be non-negative integer, but given {ignore_index}")
+        if not (
+            isinstance(ignore_index, numbers.Integral)
+            and 0 <= ignore_index < cm.num_classes
+        ):
+            raise ValueError(
+                f"ignore_index should be non-negative integer, but given {ignore_index}"
+            )
 
     # Increase floating point precision and pass to CPU
     cm = cm.type(torch.DoubleTensor)
-    iou = cm.diag() / (cm.sum(dim=1) + cm.sum(dim=0) - cm.diag() + 1e-15)  # type: MetricsLambda
+    iou = cm.diag() / (
+        cm.sum(dim=1) + cm.sum(dim=0) - cm.diag() + 1e-15
+    )  # type: MetricsLambda
     if ignore_index is not None:
         ignore_idx = ignore_index  # type: int  # used due to typing issues with mympy
 
         def ignore_index_fn(iou_vector: torch.Tensor) -> torch.Tensor:
             if ignore_idx >= len(iou_vector):
-                raise ValueError(f"ignore_index {ignore_idx} is larger than the length of IoU vector {len(iou_vector)}")
+                raise ValueError(
+                    f"ignore_index {ignore_idx} is larger than the length of IoU vector {len(iou_vector)}"
+                )
             indices = list(range(len(iou_vector)))
             indices.remove(ignore_idx)
             return iou_vector[indices]
@@ -290,7 +326,9 @@ def cmRecall(cm: ConfusionMatrix, average: bool = True) -> MetricsLambda:
     return recall
 
 
-def DiceCoefficient(cm: ConfusionMatrix, ignore_index: Optional[int] = None) -> MetricsLambda:
+def DiceCoefficient(
+    cm: ConfusionMatrix, ignore_index: Optional[int] = None
+) -> MetricsLambda:
     """Calculates Dice Coefficient for a given :class:`~ignite.metrics.confusion_matrix.ConfusionMatrix` metric.
 
     Args:
@@ -299,15 +337,24 @@ def DiceCoefficient(cm: ConfusionMatrix, ignore_index: Optional[int] = None) -> 
     """
 
     if not isinstance(cm, ConfusionMatrix):
-        raise TypeError(f"Argument cm should be instance of ConfusionMatrix, but given {type(cm)}")
+        raise TypeError(
+            f"Argument cm should be instance of ConfusionMatrix, but given {type(cm)}"
+        )
 
     if ignore_index is not None:
-        if not (isinstance(ignore_index, numbers.Integral) and 0 <= ignore_index < cm.num_classes):
-            raise ValueError(f"ignore_index should be non-negative integer, but given {ignore_index}")
+        if not (
+            isinstance(ignore_index, numbers.Integral)
+            and 0 <= ignore_index < cm.num_classes
+        ):
+            raise ValueError(
+                f"ignore_index should be non-negative integer, but given {ignore_index}"
+            )
 
     # Increase floating point precision and pass to CPU
     cm = cm.type(torch.DoubleTensor)
-    dice = 2.0 * cm.diag() / (cm.sum(dim=1) + cm.sum(dim=0) + 1e-15)  # type: MetricsLambda
+    dice = (
+        2.0 * cm.diag() / (cm.sum(dim=1) + cm.sum(dim=0) + 1e-15)
+    )  # type: MetricsLambda
 
     if ignore_index is not None:
         ignore_idx = ignore_index  # type: int  # used due to typing issues with mympy
@@ -326,7 +373,9 @@ def DiceCoefficient(cm: ConfusionMatrix, ignore_index: Optional[int] = None) -> 
         return dice
 
 
-def JaccardIndex(cm: ConfusionMatrix, ignore_index: Optional[int] = None) -> MetricsLambda:
+def JaccardIndex(
+    cm: ConfusionMatrix, ignore_index: Optional[int] = None
+) -> MetricsLambda:
     r"""Calculates the Jaccard Index using :class:`~ignite.metrics.confusion_matrix.ConfusionMatrix` metric.
     Implementation is based on :meth:`~ignite.metrics.IoU`.
 

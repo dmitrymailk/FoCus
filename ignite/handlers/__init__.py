@@ -20,7 +20,9 @@ __all__ = [
 ]
 
 
-def global_step_from_engine(engine: Engine, custom_event_name: Optional[Events] = None) -> Callable:
+def global_step_from_engine(
+    engine: Engine, custom_event_name: Optional[Events] = None
+) -> Callable:
     """Helper method to setup `global_step_transform` function using another engine.
     This can be helpful for logging trainer epoch/iteration while output handler is attached to an evaluator.
 

@@ -11,23 +11,33 @@ def _check_output_shapes(output: Tuple[torch.Tensor, torch.Tensor]) -> None:
     y_pred, y = output
     c1 = y_pred.ndimension() == 2 and y_pred.shape[1] == 1
     if not (y_pred.ndimension() == 1 or c1):
-        raise ValueError(f"Input y_pred should have shape (N,) or (N, 1), but given {y_pred.shape}")
+        raise ValueError(
+            f"Input y_pred should have shape (N,) or (N, 1), but given {y_pred.shape}"
+        )
 
     c2 = y.ndimension() == 2 and y.shape[1] == 1
     if not (y.ndimension() == 1 or c2):
-        raise ValueError(f"Input y should have shape (N,) or (N, 1), but given {y.shape}")
+        raise ValueError(
+            f"Input y should have shape (N,) or (N, 1), but given {y.shape}"
+        )
 
     if y_pred.shape != y.shape:
-        raise ValueError(f"Input data shapes should be the same, but given {y_pred.shape} and {y.shape}")
+        raise ValueError(
+            f"Input data shapes should be the same, but given {y_pred.shape} and {y.shape}"
+        )
 
 
 def _check_output_types(output: Tuple[torch.Tensor, torch.Tensor]) -> None:
     y_pred, y = output
     if y_pred.dtype not in (torch.float16, torch.float32, torch.float64):
-        raise TypeError(f"Input y_pred dtype should be float 16, 32 or 64, but given {y_pred.dtype}")
+        raise TypeError(
+            f"Input y_pred dtype should be float 16, 32 or 64, but given {y_pred.dtype}"
+        )
 
     if y.dtype not in (torch.float16, torch.float32, torch.float64):
-        raise TypeError(f"Input y dtype should be float 16, 32 or 64, but given {y.dtype}")
+        raise TypeError(
+            f"Input y dtype should be float 16, 32 or 64, but given {y.dtype}"
+        )
 
 
 class _BaseRegression(Metric):

@@ -1,7 +1,17 @@
 import numbers
 import warnings
 from functools import partial
-from typing import Any, Callable, Dict, Iterable, Mapping, Optional, Sequence, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Mapping,
+    Optional,
+    Sequence,
+    Union,
+    cast,
+)
 
 import torch
 import torch.nn as nn
@@ -163,7 +173,8 @@ def _setup_common_training_handlers(
     if lr_scheduler is not None:
         if isinstance(lr_scheduler, torch.optim.lr_scheduler._LRScheduler):
             trainer.add_event_handler(
-                Events.ITERATION_COMPLETED, lambda engine: cast(_LRScheduler, lr_scheduler).step()
+                Events.ITERATION_COMPLETED,
+                lambda engine: cast(_LRScheduler, lr_scheduler).step(),
             )
         elif isinstance(lr_scheduler, LRScheduler):
             trainer.add_event_handler(Events.ITERATION_COMPLETED, lr_scheduler)
@@ -183,9 +194,14 @@ def _setup_common_training_handlers(
             save_handler = DiskSaver(dirname=output_path, require_empty=False)
 
         checkpoint_handler = Checkpoint(
-            to_save, cast(Union[Callable, BaseSaveHandler], save_handler), filename_prefix="training", **kwargs
+            to_save,
+            cast(Union[Callable, BaseSaveHandler], save_handler),
+            filename_prefix="training",
+            **kwargs,
         )
-        trainer.add_event_handler(Events.ITERATION_COMPLETED(every=save_every_iters), checkpoint_handler)
+        trainer.add_event_handler(
+            Events.ITERATION_COMPLETED(every=save_every_iters), checkpoint_handler
+        )
 
     if with_gpu_stats:
         GpuInfo().attach(
@@ -208,18 +224,23 @@ def _setup_common_training_handlers(
                 )
 
         for i, n in enumerate(output_names):
-            RunningAverage(output_transform=partial(output_transform, index=i, name=n), epoch_bound=False).attach(
-                trainer, n
-            )
+            RunningAverage(
+                output_transform=partial(output_transform, index=i, name=n),
+                epoch_bound=False,
+            ).attach(trainer, n)
 
     if with_pbars:
         if with_pbar_on_iters:
             ProgressBar(persist=False).attach(
-                trainer, metric_names="all", event_name=Events.ITERATION_COMPLETED(every=log_every_iters)
+                trainer,
+                metric_names="all",
+                event_name=Events.ITERATION_COMPLETED(every=log_every_iters),
             )
 
         ProgressBar(persist=True, bar_format="").attach(
-            trainer, event_name=Events.EPOCH_STARTED, closing_event_name=Events.COMPLETED
+            trainer,
+            event_name=Events.EPOCH_STARTED,
+            closing_event_name=Events.COMPLETED,
         )
 
 
@@ -260,7 +281,9 @@ def _setup_common_distrib_training_handlers(
 
     if train_sampler is not None:
         if not isinstance(train_sampler, DistributedSampler):
-            raise TypeError("Train sampler should be torch DistributedSampler and have `set_epoch` method")
+            raise TypeError(
+                "Train sampler should be torch DistributedSampler and have `set_epoch` method"
+            )
 
         @trainer.on(Events.EPOCH_STARTED)
         def distrib_set_epoch(engine: Engine) -> None:
@@ -277,7 +300,9 @@ def empty_cuda_cache(_: Engine) -> None:
 @deprecated(
     "0.4.0",
     "0.6.0",
-    ("Please use instead: setup_tb_logging, setup_visdom_logging or setup_mlflow_logging etc.",),
+    (
+        "Please use instead: setup_tb_logging, setup_visdom_logging or setup_mlflow_logging etc.",
+    ),
     raise_exception=True,
 )
 def setup_any_logging(
@@ -300,17 +325,24 @@ def _setup_logging(
 ) -> None:
     if optimizers is not None:
         if not isinstance(optimizers, (Optimizer, Mapping)):
-            raise TypeError("Argument optimizers should be either a single optimizer or a dictionary or optimizers")
+            raise TypeError(
+                "Argument optimizers should be either a single optimizer or a dictionary or optimizers"
+            )
 
     if evaluators is not None:
         if not isinstance(evaluators, (Engine, Mapping)):
-            raise TypeError("Argument evaluators should be either a single engine or a dictionary or engines")
+            raise TypeError(
+                "Argument evaluators should be either a single engine or a dictionary or engines"
+            )
 
     if log_every_iters is None:
         log_every_iters = 1
 
     logger.attach_output_handler(
-        trainer, event_name=Events.ITERATION_COMPLETED(every=log_every_iters), tag="training", metric_names="all"
+        trainer,
+        event_name=Events.ITERATION_COMPLETED(every=log_every_iters),
+        tag="training",
+        metric_names="all",
     )
 
     if optimizers is not None:
@@ -320,7 +352,11 @@ def _setup_logging(
 
         for k, optimizer in optimizers.items():
             logger.attach_opt_params_handler(
-                trainer, Events.ITERATION_STARTED(every=log_every_iters), optimizer, param_name="lr", tag=k
+                trainer,
+                Events.ITERATION_STARTED(every=log_every_iters),
+                optimizer,
+                param_name="lr",
+                tag=k,
             )
 
     if evaluators is not None:
@@ -328,11 +364,17 @@ def _setup_logging(
         if isinstance(evaluators, Engine):
             evaluators = {"validation": evaluators}
 
-        event_name = Events.ITERATION_COMPLETED if isinstance(logger, WandBLogger) else None
+        event_name = (
+            Events.ITERATION_COMPLETED if isinstance(logger, WandBLogger) else None
+        )
         gst = global_step_from_engine(trainer, custom_event_name=event_name)
         for k, evaluator in evaluators.items():
             logger.attach_output_handler(
-                evaluator, event_name=Events.COMPLETED, tag=k, metric_names="all", global_step_transform=gst
+                evaluator,
+                event_name=Events.COMPLETED,
+                tag=k,
+                metric_names="all",
+                global_step_transform=gst,
             )
 
 
@@ -562,10 +604,11 @@ def setup_trains_logging(
     log_every_iters: int = 100,
     **kwargs: Any,
 ) -> ClearMLLogger:
-    """``setup_trains_logging`` was renamed to :func:`~ignite.contrib.engines.common.setup_clearml_logging`.
-    """
+    """``setup_trains_logging`` was renamed to :func:`~ignite.contrib.engines.common.setup_clearml_logging`."""
     warnings.warn("setup_trains_logging was renamed to setup_clearml_logging.")
-    return setup_clearml_logging(trainer, optimizers, evaluators, log_every_iters, **kwargs)
+    return setup_clearml_logging(
+        trainer, optimizers, evaluators, log_every_iters, **kwargs
+    )
 
 
 get_default_score_fn = Checkpoint.get_default_score_fn
@@ -686,7 +729,11 @@ def add_early_stopping_by_val_score(
     Returns:
         A :class:`~ignite.handlers.early_stopping.EarlyStopping` handler.
     """
-    es_handler = EarlyStopping(patience=patience, score_function=get_default_score_fn(metric_name), trainer=trainer)
+    es_handler = EarlyStopping(
+        patience=patience,
+        score_function=get_default_score_fn(metric_name),
+        trainer=trainer,
+    )
     evaluator.add_event_handler(Events.COMPLETED, es_handler)
 
     return es_handler

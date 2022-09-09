@@ -133,8 +133,7 @@ def model_name() -> str:
 
 
 def get_world_size() -> int:
-    """Returns world size of current distributed configuration. Returns 1 if no distributed configuration.
-    """
+    """Returns world size of current distributed configuration. Returns 1 if no distributed configuration."""
     if _need_to_sync and isinstance(_model, _SerialModel):
         sync(temporary=True)
 
@@ -142,8 +141,7 @@ def get_world_size() -> int:
 
 
 def get_rank() -> int:
-    """Returns process rank within current distributed configuration. Returns 0 if no distributed configuration.
-    """
+    """Returns process rank within current distributed configuration. Returns 0 if no distributed configuration."""
     if _need_to_sync and isinstance(_model, _SerialModel):
         sync(temporary=True)
 
@@ -151,8 +149,7 @@ def get_rank() -> int:
 
 
 def get_local_rank() -> int:
-    """Returns local process rank within current distributed configuration. Returns 0 if no distributed configuration.
-    """
+    """Returns local process rank within current distributed configuration. Returns 0 if no distributed configuration."""
     if _need_to_sync and isinstance(_model, _SerialModel):
         sync(temporary=True)
 
@@ -190,8 +187,7 @@ def get_node_rank() -> int:
 
 
 def hostname() -> str:
-    """Returns host name for current process within current distributed configuration.
-    """
+    """Returns host name for current process within current distributed configuration."""
     return socket.gethostname()
 
 
@@ -321,11 +317,18 @@ def spawn(
         if backend not in comp_model_cls.available_backends:
             continue
         comp_model_cls.spawn(
-            fn, args=args, kwargs_dict=kwargs_dict, nproc_per_node=nproc_per_node, backend=backend, **kwargs
+            fn,
+            args=args,
+            kwargs_dict=kwargs_dict,
+            nproc_per_node=nproc_per_node,
+            backend=backend,
+            **kwargs,
         )
 
 
-def all_reduce(tensor: Union[torch.Tensor, float], op: str = "SUM") -> Union[torch.Tensor, float]:
+def all_reduce(
+    tensor: Union[torch.Tensor, float], op: str = "SUM"
+) -> Union[torch.Tensor, float]:
     """Helper method to perform all reduce operation.
 
     Args:
@@ -343,7 +346,9 @@ def all_reduce(tensor: Union[torch.Tensor, float], op: str = "SUM") -> Union[tor
     return _model.all_reduce(tensor, op)
 
 
-def all_gather(tensor: Union[torch.Tensor, float, str]) -> Union[torch.Tensor, float, List[float], List[str]]:
+def all_gather(
+    tensor: Union[torch.Tensor, float, str]
+) -> Union[torch.Tensor, float, List[float], List[str]]:
     """Helper method to perform all gather operation.
 
     Args:
@@ -361,7 +366,9 @@ def all_gather(tensor: Union[torch.Tensor, float, str]) -> Union[torch.Tensor, f
     return _model.all_gather(tensor)
 
 
-def broadcast(tensor: Union[torch.Tensor, float, str], src: int = 0) -> Union[torch.Tensor, float, str]:
+def broadcast(
+    tensor: Union[torch.Tensor, float, str], src: int = 0
+) -> Union[torch.Tensor, float, str]:
     """Helper method to perform broadcast operation.
 
     Args:
@@ -406,8 +413,7 @@ def broadcast(tensor: Union[torch.Tensor, float, str], src: int = 0) -> Union[to
 
 
 def barrier() -> None:
-    """Helper method to synchronize all processes.
-    """
+    """Helper method to synchronize all processes."""
     if _need_to_sync and isinstance(_model, _SerialModel):
         sync(temporary=True)
 
@@ -530,8 +536,7 @@ def finalize() -> None:
 
 
 def show_config() -> None:
-    """Helper method to display distributed configuration via ``logging``.
-    """
+    """Helper method to display distributed configuration via ``logging``."""
 
     # setup parallel logger
     logger = setup_logger(__name__)

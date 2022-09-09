@@ -49,7 +49,9 @@ class CohenKappa(EpochMetric):
         except ImportError:
             raise RuntimeError("This contrib module requires sklearn to be installed.")
         if weights not in (None, "linear", "quadratic"):
-            raise ValueError("Kappa Weighting type must be None or linear or quadratic.")
+            raise ValueError(
+                "Kappa Weighting type must be None or linear or quadratic."
+            )
 
         # initalize weights
         self.weights = weights

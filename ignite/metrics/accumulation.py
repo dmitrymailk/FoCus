@@ -50,7 +50,9 @@ class VariableAccumulation(Metric):
 
         self._op = op
 
-        super(VariableAccumulation, self).__init__(output_transform=output_transform, device=device)
+        super(VariableAccumulation, self).__init__(
+            output_transform=output_transform, device=device
+        )
 
     @reinit__is_reduced
     def reset(self) -> None:
@@ -59,7 +61,9 @@ class VariableAccumulation(Metric):
 
     def _check_output_type(self, output: Union[float, torch.Tensor]) -> None:
         if not (isinstance(output, numbers.Number) or isinstance(output, torch.Tensor)):
-            raise TypeError(f"Output should be a number or torch.Tensor, but given {type(output)}")
+            raise TypeError(
+                f"Output should be a number or torch.Tensor, but given {type(output)}"
+            )
 
     @reinit__is_reduced
     def update(self, output: Union[float, torch.Tensor]) -> None:
@@ -122,14 +126,20 @@ class Average(VariableAccumulation):
     """
 
     def __init__(
-        self, output_transform: Callable = lambda x: x, device: Union[str, torch.device] = torch.device("cpu")
+        self,
+        output_transform: Callable = lambda x: x,
+        device: Union[str, torch.device] = torch.device("cpu"),
     ):
-        def _mean_op(a: Union[float, torch.Tensor], x: Union[float, torch.Tensor]) -> Union[float, torch.Tensor]:
+        def _mean_op(
+            a: Union[float, torch.Tensor], x: Union[float, torch.Tensor]
+        ) -> Union[float, torch.Tensor]:
             if isinstance(x, torch.Tensor) and x.ndim > 1:
                 x = x.sum(dim=0)
             return a + x
 
-        super(Average, self).__init__(op=_mean_op, output_transform=output_transform, device=device)
+        super(Average, self).__init__(
+            op=_mean_op, output_transform=output_transform, device=device
+        )
 
     @sync_all_reduce("accumulator", "num_examples")
     def compute(self) -> Union[float, torch.Tensor]:
@@ -170,7 +180,9 @@ class GeometricAverage(VariableAccumulation):
     """
 
     def __init__(
-        self, output_transform: Callable = lambda x: x, device: Union[str, torch.device] = torch.device("cpu")
+        self,
+        output_transform: Callable = lambda x: x,
+        device: Union[str, torch.device] = torch.device("cpu"),
     ):
         def _geom_op(a: torch.Tensor, x: Union[float, torch.Tensor]) -> torch.Tensor:
             if not isinstance(x, torch.Tensor):
@@ -180,7 +192,9 @@ class GeometricAverage(VariableAccumulation):
                 x = x.sum(dim=0)
             return a + x
 
-        super(GeometricAverage, self).__init__(op=_geom_op, output_transform=output_transform, device=device)
+        super(GeometricAverage, self).__init__(
+            op=_geom_op, output_transform=output_transform, device=device
+        )
 
     @sync_all_reduce("accumulator", "num_examples")
     def compute(self) -> Union[float, torch.Tensor]:

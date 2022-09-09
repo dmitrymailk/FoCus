@@ -18,7 +18,9 @@ class _BaseClassification(Metric):
         self._is_multilabel = is_multilabel
         self._type = None  # type: Optional[str]
         self._num_classes = None  # type: Optional[int]
-        super(_BaseClassification, self).__init__(output_transform=output_transform, device=device)
+        super(_BaseClassification, self).__init__(
+            output_transform=output_transform, device=device
+        )
 
     def reset(self) -> None:
         self._type = None
@@ -26,8 +28,11 @@ class _BaseClassification(Metric):
 
     def _check_shape(self, output: Sequence[torch.Tensor]) -> None:
         y_pred, y = output
-        #print("y_pred", y_pred, "y", y)
-        if not (y.ndimension() == y_pred.ndimension() or y.ndimension() + 1 == y_pred.ndimension()):
+        # print("y_pred", y_pred, "y", y)
+        if not (
+            y.ndimension() == y_pred.ndimension()
+            or y.ndimension() + 1 == y_pred.ndimension()
+        ):
             raise ValueError(
                 "y must have shape of (batch_size, ...) and y_pred must have "
                 "shape of (batch_size, num_categories, ...) or (batch_size, ...), "
@@ -41,11 +46,13 @@ class _BaseClassification(Metric):
             y_pred_shape = (y_pred_shape[0],) + y_pred_shape[2:]
 
         if not (y_shape == y_pred_shape):
-            #print("y: ", y, "y_pred: ", y_pred)
-            #print("y_shape: ", y_shape, "y_pred_shape: ", y_pred_shape)
+            # print("y: ", y, "y_pred: ", y_pred)
+            # print("y_shape: ", y_shape, "y_pred_shape: ", y_pred_shape)
             raise ValueError("y and y_pred must have compatible shapes.")
 
-        if self._is_multilabel and not (y.shape == y_pred.shape and y.ndimension() > 1 and y.shape[1] > 1):
+        if self._is_multilabel and not (
+            y.shape == y_pred.shape and y.ndimension() > 1 and y.shape[1] > 1
+        ):
             raise ValueError(
                 "y and y_pred must have same shape of (batch_size, num_categories, ...) and num_categories > 1."
             )
@@ -53,11 +60,13 @@ class _BaseClassification(Metric):
     def _check_binary_multilabel_cases(self, output: Sequence[torch.Tensor]) -> None:
         y_pred, y = output
 
-        if not torch.equal(y, y ** 2):
+        if not torch.equal(y, y**2):
             raise ValueError("For binary cases, y must be comprised of 0's and 1's.")
 
-        if not torch.equal(y_pred, y_pred ** 2):
-            raise ValueError("For binary cases, y_pred must be comprised of 0's and 1's.")
+        if not torch.equal(y_pred, y_pred**2):
+            raise ValueError(
+                "For binary cases, y_pred must be comprised of 0's and 1's."
+            )
 
     def _check_type(self, output: Sequence[torch.Tensor]) -> None:
         y_pred, y = output
@@ -88,9 +97,13 @@ class _BaseClassification(Metric):
             self._num_classes = num_classes
         else:
             if self._type != update_type:
-                raise RuntimeError(f"Input data type has changed from {self._type} to {update_type}.")
+                raise RuntimeError(
+                    f"Input data type has changed from {self._type} to {update_type}."
+                )
             if self._num_classes != num_classes:
-                raise ValueError(f"Input data number of classes has changed from {self._num_classes} to {num_classes}")
+                raise ValueError(
+                    f"Input data number of classes has changed from {self._num_classes} to {num_classes}"
+                )
 
 
 class Accuracy(_BaseClassification):
@@ -138,7 +151,11 @@ class Accuracy(_BaseClassification):
         is_multilabel: bool = False,
         device: Union[str, torch.device] = torch.device("cpu"),
     ):
-        super(Accuracy, self).__init__(output_transform=output_transform, is_multilabel=is_multilabel, device=device)
+        super(Accuracy, self).__init__(
+            output_transform=output_transform,
+            is_multilabel=is_multilabel,
+            device=device,
+        )
 
     @reinit__is_reduced
     def reset(self) -> None:
@@ -171,5 +188,7 @@ class Accuracy(_BaseClassification):
     @sync_all_reduce("_num_examples", "_num_correct")
     def compute(self) -> float:
         if self._num_examples == 0:
-            raise NotComputableError("Accuracy must have at least one example before it can be computed.")
+            raise NotComputableError(
+                "Accuracy must have at least one example before it can be computed."
+            )
         return self._num_correct.item() / self._num_examples

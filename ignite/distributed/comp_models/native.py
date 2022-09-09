@@ -37,7 +37,11 @@ if has_native_dist_support:
         """
 
         name = "native-dist"
-        available_backends = tuple(name for name in [NCCL, GLOO, MPI] if getattr(dist, f"is_{name}_available")())
+        available_backends = tuple(
+            name
+            for name in [NCCL, GLOO, MPI]
+            if getattr(dist, f"is_{name}_available")()
+        )
 
         @staticmethod
         def create_from_context() -> Optional["_NativeDistModel"]:
@@ -54,22 +58,34 @@ if has_native_dist_support:
             **kwargs: Any,
         ) -> "_NativeDistModel":
             if backend not in _NativeDistModel.available_backends:
-                raise ValueError(f"Backend should be one of '{_NativeDistModel.available_backends}'")
+                raise ValueError(
+                    f"Backend should be one of '{_NativeDistModel.available_backends}'"
+                )
 
             if dist.is_available() and dist.is_initialized():
-                raise RuntimeError("Can not create new distributed process group if default one is already initialized")
+                raise RuntimeError(
+                    "Can not create new distributed process group if default one is already initialized"
+                )
 
             if init_method is None:
                 if world_size is not None or rank is not None:
-                    raise ValueError("Arguments rank and world_size should be None if no init_method is provided")
+                    raise ValueError(
+                        "Arguments rank and world_size should be None if no init_method is provided"
+                    )
             else:
                 has_rank = rank is not None
                 has_ws = world_size is not None
                 if (has_rank or has_ws) and (not has_rank or not has_ws):
-                    raise ValueError(f"Both rank and world_size should be provided, but given {rank} and {world_size}")
+                    raise ValueError(
+                        f"Both rank and world_size should be provided, but given {rank} and {world_size}"
+                    )
 
             return _NativeDistModel(
-                backend=backend, init_method=init_method, world_size=world_size, rank=rank, **kwargs
+                backend=backend,
+                init_method=init_method,
+                world_size=world_size,
+                rank=rank,
+                **kwargs,
             )
 
         def __init__(
@@ -81,8 +97,7 @@ if has_native_dist_support:
             rank: Optional[int] = None,
             **kwargs: Any,
         ) -> None:
-            """This is a private method. Please, use `create_from_backend` or `create_from_context`
-            """
+            """This is a private method. Please, use `create_from_backend` or `create_from_context`"""
             super(_NativeDistModel, self).__init__()
             self._env_backup = None  # type: Optional[Dict[str, str]]
             self._master_port = None  # type: Optional[int]
@@ -90,7 +105,12 @@ if has_native_dist_support:
             self._init_method = None  # type: Optional[str]
             if backend is not None:
                 self._create_from_backend(
-                    backend, timeout=timeout, init_method=init_method, world_size=world_size, rank=rank, **kwargs
+                    backend,
+                    timeout=timeout,
+                    init_method=init_method,
+                    world_size=world_size,
+                    rank=rank,
+                    **kwargs,
                 )
             else:
                 self._init_from_context()
@@ -105,7 +125,9 @@ if has_native_dist_support:
             **kwargs: Any,
         ) -> None:
             if backend == dist.Backend.NCCL and not torch.cuda.is_available():
-                raise RuntimeError("Nccl backend is required but no cuda capable devices")
+                raise RuntimeError(
+                    "Nccl backend is required but no cuda capable devices"
+                )
             self._backend = backend
             self.setup_env_vars(rank, world_size)
 
@@ -157,16 +179,25 @@ if has_native_dist_support:
             name = torch.tensor(bytearray(hostname, "utf-8")).to(device)
             padded_t_name = torch.zeros(256, device=device, dtype=torch.long)
             padded_t_name[: len(name)] = name
-            out_t_names = [torch.zeros_like(padded_t_name) for _ in range(self.get_world_size())]
+            out_t_names = [
+                torch.zeros_like(padded_t_name) for _ in range(self.get_world_size())
+            ]
             dist.all_gather(out_t_names, padded_t_name)
             return [tuple(t.cpu().tolist()) for t in out_t_names]
 
         @staticmethod
-        def _compute_node_and_local_ranks(rank: int, hostnames: List[Tuple[str, ...]]) -> Tuple[int, int]:
+        def _compute_node_and_local_ranks(
+            rank: int, hostnames: List[Tuple[str, ...]]
+        ) -> Tuple[int, int]:
             from collections import Counter
 
             c = Counter(hostnames)  # type: Counter
-            sizes = torch.tensor([0,] + list(c.values()))
+            sizes = torch.tensor(
+                [
+                    0,
+                ]
+                + list(c.values())
+            )
             cumsum_sizes = torch.cumsum(sizes, dim=0)
             node_rank = (rank // cumsum_sizes[1:]).clamp(0, 1).sum().item()
             local_rank = rank - cumsum_sizes[node_rank].item()
@@ -175,7 +206,9 @@ if has_native_dist_support:
         def _compute_local_rank_via_hostname(self) -> int:
             # get all hostnames
             hostnames = self._get_all_hostnames()
-            local_rank, self._node = self._compute_node_and_local_ranks(self.get_rank(), hostnames)
+            local_rank, self._node = self._compute_node_and_local_ranks(
+                self.get_rank(), hostnames
+            )
 
             if local_rank < 0 or self._node < 0:
                 raise ValueError(
@@ -204,13 +237,17 @@ if has_native_dist_support:
                 # use socket gethostname heuristic to determine number of nodes => local rank
                 self._local_rank = self._compute_local_rank_via_hostname()
 
-        def setup_env_vars(self, rank: Optional[int] = None, world_size: Optional[int] = None) -> None:
+        def setup_env_vars(
+            self, rank: Optional[int] = None, world_size: Optional[int] = None
+        ) -> None:
 
             self._env_backup = os.environ.copy()
 
             if "SLURM_JOBID" in os.environ:
                 if rank is not None or world_size is not None:
-                    raise ValueError("Arguments rank and world_size should not be specified with SLURM")
+                    raise ValueError(
+                        "Arguments rank and world_size should not be specified with SLURM"
+                    )
                 self._setup_env_in_slurm()
                 return
 
@@ -223,8 +260,12 @@ if has_native_dist_support:
                     f"PyTorch distributed configuration should define env variables '{necessary_env_vars}'"
                 )
 
-            os.environ["RANK"] = os.environ.get("RANK", f"{rank if rank is not None else 0}")
-            os.environ["WORLD_SIZE"] = os.environ.get("WORLD_SIZE", f"{world_size if world_size is not None else 1}")
+            os.environ["RANK"] = os.environ.get(
+                "RANK", f"{rank if rank is not None else 0}"
+            )
+            os.environ["WORLD_SIZE"] = os.environ.get(
+                "WORLD_SIZE", f"{world_size if world_size is not None else 1}"
+            )
             os.environ["LOCAL_RANK"] = os.environ.get("LOCAL_RANK", "0")
             os.environ["MASTER_PORT"] = os.environ.get("MASTER_PORT", "15000")
             os.environ["MASTER_ADDR"] = os.environ.get("MASTER_ADDR", "127.0.0.1")
@@ -233,9 +274,16 @@ if has_native_dist_support:
             self._master_port = int(os.environ["MASTER_PORT"])
 
         def _setup_env_in_slurm(self) -> None:
-            for k in ["SLURM_PROCID", "SLURM_LOCALID", "SLURM_NTASKS", "SLURM_JOB_NODELIST"]:
+            for k in [
+                "SLURM_PROCID",
+                "SLURM_LOCALID",
+                "SLURM_NTASKS",
+                "SLURM_JOB_NODELIST",
+            ]:
                 if k not in os.environ:
-                    raise RuntimeError(f"SLURM distributed configuration is missing '{k}' in env variables")
+                    raise RuntimeError(
+                        f"SLURM distributed configuration is missing '{k}' in env variables"
+                    )
 
             os.environ["RANK"] = os.environ["SLURM_PROCID"]
             os.environ["LOCAL_RANK"] = os.environ["SLURM_LOCALID"]
@@ -245,7 +293,9 @@ if has_native_dist_support:
             slurm_port = slurm_port[-4:]
             os.environ["MASTER_PORT"] = str(int(slurm_port) + 15000)
             # master address is the first hostname of nodes list
-            hostnames = subprocess.check_output(["scontrol", "show", "hostnames", os.environ["SLURM_JOB_NODELIST"]])
+            hostnames = subprocess.check_output(
+                ["scontrol", "show", "hostnames", os.environ["SLURM_JOB_NODELIST"]]
+            )
             os.environ["MASTER_ADDR"] = hostnames.split()[0].decode("utf-8")
 
         def get_local_rank(self) -> int:
@@ -320,7 +370,11 @@ if has_native_dist_support:
                 arg_rank = None
 
             model = _NativeDistModel.create_from_backend(
-                backend, init_method=init_method, world_size=arg_world_size, rank=arg_rank, **kw
+                backend,
+                init_method=init_method,
+                world_size=arg_world_size,
+                rank=arg_rank,
+                **kw,
             )
             _set_model(model)
             fn(local_rank, *args, **kw_dict)

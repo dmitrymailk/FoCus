@@ -7,7 +7,17 @@ import warnings
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from tempfile import _TemporaryFileWrapper  # type: ignore[attr-defined]
-from typing import Any, Callable, Dict, List, Mapping, NamedTuple, Optional, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import torch
 import torch.nn as nn
@@ -37,7 +47,9 @@ class BaseSaveHandler(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def __call__(self, checkpoint: Mapping, filename: str, metadata: Optional[Mapping] = None) -> None:
+    def __call__(
+        self, checkpoint: Mapping, filename: str, metadata: Optional[Mapping] = None
+    ) -> None:
         """Method to save `checkpoint` with `filename`. Additionally, metadata dictionary is provided.
 
         Metadata contains:
@@ -271,7 +283,9 @@ class Checkpoint(Serializable):
     ):
 
         if not isinstance(to_save, collections.Mapping):
-            raise TypeError(f"Argument `to_save` should be a dictionary, but given {type(to_save)}")
+            raise TypeError(
+                f"Argument `to_save` should be a dictionary, but given {type(to_save)}"
+            )
 
         self._check_objects(to_save, "state_dict")
 
@@ -282,16 +296,25 @@ class Checkpoint(Serializable):
                 )
 
             if "checkpointer" in to_save:
-                raise ValueError(f"Cannot have key 'checkpointer' if `include_self` is True: {to_save}")
+                raise ValueError(
+                    f"Cannot have key 'checkpointer' if `include_self` is True: {to_save}"
+                )
 
         if not (callable(save_handler) or isinstance(save_handler, BaseSaveHandler)):
-            raise TypeError("Argument `save_handler` should be callable or inherit from BaseSaveHandler")
+            raise TypeError(
+                "Argument `save_handler` should be callable or inherit from BaseSaveHandler"
+            )
 
         if score_function is None and score_name is not None:
-            raise ValueError("If `score_name` is provided, then `score_function` " "should be also provided.")
+            raise ValueError(
+                "If `score_name` is provided, then `score_function` "
+                "should be also provided."
+            )
 
         if global_step_transform is not None and not callable(global_step_transform):
-            raise TypeError(f"global_step_transform should be a function, got {type(global_step_transform)} instead.")
+            raise TypeError(
+                f"global_step_transform should be a function, got {type(global_step_transform)} instead."
+            )
 
         self.to_save = to_save
         self.filename_prefix = filename_prefix
@@ -362,12 +385,18 @@ class Checkpoint(Serializable):
                 raise ValueError("Output of score_function should be a number")
         else:
             if global_step is None:
-                global_step = engine.state.get_event_attrib_value(Events.ITERATION_COMPLETED)
+                global_step = engine.state.get_event_attrib_value(
+                    Events.ITERATION_COMPLETED
+                )
             priority = global_step
 
         if self._check_lt_n_saved() or self._compare_fn(priority):
 
-            priority_str = f"{priority}" if isinstance(priority, numbers.Integral) else f"{priority:.4f}"
+            priority_str = (
+                f"{priority}"
+                if isinstance(priority, numbers.Integral)
+                else f"{priority:.4f}"
+            )
 
             checkpoint = self._setup_checkpoint()
 
@@ -404,7 +433,9 @@ class Checkpoint(Serializable):
             }
 
             try:
-                index = list(map(lambda it: it.filename == filename, self._saved)).index(True)
+                index = list(
+                    map(lambda it: it.filename == filename, self._saved)
+                ).index(True)
                 to_remove = True
             except ValueError:
                 index = 0
@@ -431,14 +462,19 @@ class Checkpoint(Serializable):
         checkpoint = {}
         if self.to_save is not None:
             for k, obj in self.to_save.items():
-                if isinstance(obj, (nn.DataParallel, nn.parallel.DistributedDataParallel)):
+                if isinstance(
+                    obj, (nn.DataParallel, nn.parallel.DistributedDataParallel)
+                ):
                     obj = obj.module
                 checkpoint[k] = obj.state_dict()
         return checkpoint
 
     @staticmethod
     def setup_filename_pattern(
-        with_prefix: bool = True, with_score: bool = True, with_score_name: bool = True, with_global_step: bool = True,
+        with_prefix: bool = True,
+        with_score: bool = True,
+        with_score_name: bool = True,
+        with_global_step: bool = True,
     ) -> str:
         """Helper method to get the default filename pattern for a checkpoint.
 
@@ -470,7 +506,9 @@ class Checkpoint(Serializable):
         filename_pattern = "{name}"
 
         if not (with_global_step or with_score):
-            raise ValueError("At least one of with_score and with_global_step should be True.")
+            raise ValueError(
+                "At least one of with_score and with_global_step should be True."
+            )
 
         if with_global_step:
             filename_pattern += "_{global_step}"
@@ -480,7 +518,9 @@ class Checkpoint(Serializable):
         elif with_score:
             filename_pattern += "_{score}"
         elif with_score_name:
-            raise ValueError("If with_score_name is True, with_score should be also True")
+            raise ValueError(
+                "If with_score_name is True, with_score should be also True"
+            )
 
         if with_prefix:
             filename_pattern = "{filename_prefix}_" + filename_pattern
@@ -537,17 +577,23 @@ class Checkpoint(Serializable):
         """
         Checkpoint._check_objects(to_load, "load_state_dict")
         if not isinstance(checkpoint, collections.Mapping):
-            raise TypeError(f"Argument checkpoint should be a dictionary, but given {type(checkpoint)}")
+            raise TypeError(
+                f"Argument checkpoint should be a dictionary, but given {type(checkpoint)}"
+            )
 
         if len(kwargs) > 1 or any(k for k in kwargs.keys() if k not in ["strict"]):
-            warnings.warn("kwargs contains keys other than strict and these will be ignored")
+            warnings.warn(
+                "kwargs contains keys other than strict and these will be ignored"
+            )
 
         is_state_dict_strict = kwargs.get("strict", True)
         if len(to_load) == 1:
             # single object and checkpoint is directly a state_dict
             key, obj = list(to_load.items())[0]
             if key not in checkpoint:
-                if isinstance(obj, (nn.DataParallel, nn.parallel.DistributedDataParallel)):
+                if isinstance(
+                    obj, (nn.DataParallel, nn.parallel.DistributedDataParallel)
+                ):
                     obj = obj.module
                 obj.load_state_dict(checkpoint, strict=is_state_dict_strict)
                 return
@@ -555,7 +601,9 @@ class Checkpoint(Serializable):
         # multiple objects to load
         for k, obj in to_load.items():
             if k not in checkpoint:
-                raise ValueError(f"Object labeled by '{k}' from `to_load` is not found in the checkpoint")
+                raise ValueError(
+                    f"Object labeled by '{k}' from `to_load` is not found in the checkpoint"
+                )
             if isinstance(obj, (nn.DataParallel, nn.parallel.DistributedDataParallel)):
                 obj = obj.module
             if isinstance(obj, torch.nn.Module):
@@ -643,7 +691,12 @@ class DiskSaver(BaseSaveHandler):
     """
 
     def __init__(
-        self, dirname: str, atomic: bool = True, create_dir: bool = True, require_empty: bool = True, **kwargs: Any
+        self,
+        dirname: str,
+        atomic: bool = True,
+        create_dir: bool = True,
+        require_empty: bool = True,
+        **kwargs: Any,
     ):
         self.dirname = os.path.expanduser(dirname)
         self._atomic = atomic
@@ -670,7 +723,9 @@ class DiskSaver(BaseSaveHandler):
                     ""
                 )
 
-    def __call__(self, checkpoint: Mapping, filename: str, metadata: Optional[Mapping] = None) -> None:
+    def __call__(
+        self, checkpoint: Mapping, filename: str, metadata: Optional[Mapping] = None
+    ) -> None:
         path = os.path.join(self.dirname, filename)
 
         if idist.has_xla_support:
@@ -688,7 +743,9 @@ class DiskSaver(BaseSaveHandler):
         # all tpu procs should enter here as internally performs sync across device
         self._save_func(checkpoint, path, xm.save, rank=idist.get_rank())
 
-    def _save_func(self, checkpoint: Mapping, path: str, func: Callable, rank: int = 0) -> None:
+    def _save_func(
+        self, checkpoint: Mapping, path: str, func: Callable, rank: int = 0
+    ) -> None:
         if not self._atomic:
             func(checkpoint, path, **self.kwargs)
         else:
@@ -800,7 +857,13 @@ class ModelCheckpoint(Checkpoint):
         **kwargs: Any,
     ):
 
-        disk_saver = DiskSaver(dirname, atomic=atomic, create_dir=create_dir, require_empty=require_empty, **kwargs)
+        disk_saver = DiskSaver(
+            dirname,
+            atomic=atomic,
+            create_dir=create_dir,
+            require_empty=require_empty,
+            **kwargs,
+        )
 
         super(ModelCheckpoint, self).__init__(
             to_save={},

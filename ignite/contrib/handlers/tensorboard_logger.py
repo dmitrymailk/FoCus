@@ -171,7 +171,9 @@ class TensorboardLogger(BaseLogger):
     def _create_output_handler(self, *args: Any, **kwargs: Any) -> "OutputHandler":
         return OutputHandler(*args, **kwargs)
 
-    def _create_opt_params_handler(self, *args: Any, **kwargs: Any) -> "OptimizerParamsHandler":
+    def _create_opt_params_handler(
+        self, *args: Any, **kwargs: Any
+    ) -> "OptimizerParamsHandler":
         return OptimizerParamsHandler(*args, **kwargs)
 
 
@@ -268,12 +270,21 @@ class OutputHandler(BaseOutputHandler):
         output_transform: Optional[Callable] = None,
         global_step_transform: Optional[Callable] = None,
     ):
-        super(OutputHandler, self).__init__(tag, metric_names, output_transform, global_step_transform)
+        super(OutputHandler, self).__init__(
+            tag, metric_names, output_transform, global_step_transform
+        )
 
-    def __call__(self, engine: Engine, logger: TensorboardLogger, event_name: Union[str, EventEnum]) -> None:
+    def __call__(
+        self,
+        engine: Engine,
+        logger: TensorboardLogger,
+        event_name: Union[str, EventEnum],
+    ) -> None:
 
         if not isinstance(logger, TensorboardLogger):
-            raise RuntimeError("Handler 'OutputHandler' works only with TensorboardLogger")
+            raise RuntimeError(
+                "Handler 'OutputHandler' works only with TensorboardLogger"
+            )
 
         metrics = self._setup_output_metrics(engine)
 
@@ -285,13 +296,21 @@ class OutputHandler(BaseOutputHandler):
             )
 
         for key, value in metrics.items():
-            if isinstance(value, numbers.Number) or isinstance(value, torch.Tensor) and value.ndimension() == 0:
+            if (
+                isinstance(value, numbers.Number)
+                or isinstance(value, torch.Tensor)
+                and value.ndimension() == 0
+            ):
                 logger.writer.add_scalar(f"{self.tag}/{key}", value, global_step)
             elif isinstance(value, torch.Tensor) and value.ndimension() == 1:
                 for i, v in enumerate(value):
-                    logger.writer.add_scalar(f"{self.tag}/{key}/{i}", v.item(), global_step)
+                    logger.writer.add_scalar(
+                        f"{self.tag}/{key}/{i}", v.item(), global_step
+                    )
             else:
-                warnings.warn(f"TensorboardLogger output_handler can not log metrics value type {type(value)}")
+                warnings.warn(
+                    f"TensorboardLogger output_handler can not log metrics value type {type(value)}"
+                )
 
 
 class OptimizerParamsHandler(BaseOptimizerParamsHandler):
@@ -326,17 +345,25 @@ class OptimizerParamsHandler(BaseOptimizerParamsHandler):
         tag: common title for all produced plots. For example, "generator"
     """
 
-    def __init__(self, optimizer: Optimizer, param_name: str = "lr", tag: Optional[str] = None):
+    def __init__(
+        self, optimizer: Optimizer, param_name: str = "lr", tag: Optional[str] = None
+    ):
         super(OptimizerParamsHandler, self).__init__(optimizer, param_name, tag)
 
-    def __call__(self, engine: Engine, logger: TensorboardLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: TensorboardLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, TensorboardLogger):
-            raise RuntimeError("Handler OptimizerParamsHandler works only with TensorboardLogger")
+            raise RuntimeError(
+                "Handler OptimizerParamsHandler works only with TensorboardLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
         params = {
-            f"{tag_prefix}{self.param_name}/group_{i}": float(param_group[self.param_name])
+            f"{tag_prefix}{self.param_name}/group_{i}": float(
+                param_group[self.param_name]
+            )
             for i, param_group in enumerate(self.optimizer.param_groups)
         }
 
@@ -372,13 +399,22 @@ class WeightsScalarHandler(BaseWeightsScalarHandler):
 
     """
 
-    def __init__(self, model: nn.Module, reduction: Callable = torch.norm, tag: Optional[str] = None):
+    def __init__(
+        self,
+        model: nn.Module,
+        reduction: Callable = torch.norm,
+        tag: Optional[str] = None,
+    ):
         super(WeightsScalarHandler, self).__init__(model, reduction, tag=tag)
 
-    def __call__(self, engine: Engine, logger: TensorboardLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: TensorboardLogger, event_name: Union[str, Events]
+    ) -> None:
 
         if not isinstance(logger, TensorboardLogger):
-            raise RuntimeError("Handler 'WeightsScalarHandler' works only with TensorboardLogger")
+            raise RuntimeError(
+                "Handler 'WeightsScalarHandler' works only with TensorboardLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
@@ -388,7 +424,9 @@ class WeightsScalarHandler(BaseWeightsScalarHandler):
 
             name = name.replace(".", "/")
             logger.writer.add_scalar(
-                f"{tag_prefix}weights_{self.reduction.__name__}/{name}", self.reduction(p.data), global_step
+                f"{tag_prefix}weights_{self.reduction.__name__}/{name}",
+                self.reduction(p.data),
+                global_step,
             )
 
 
@@ -420,9 +458,13 @@ class WeightsHistHandler(BaseWeightsHistHandler):
     def __init__(self, model: nn.Module, tag: Optional[str] = None):
         super(WeightsHistHandler, self).__init__(model, tag=tag)
 
-    def __call__(self, engine: Engine, logger: TensorboardLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: TensorboardLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, TensorboardLogger):
-            raise RuntimeError("Handler 'WeightsHistHandler' works only with TensorboardLogger")
+            raise RuntimeError(
+                "Handler 'WeightsHistHandler' works only with TensorboardLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
@@ -432,7 +474,9 @@ class WeightsHistHandler(BaseWeightsHistHandler):
 
             name = name.replace(".", "/")
             logger.writer.add_histogram(
-                tag=f"{tag_prefix}weights/{name}", values=p.data.detach().cpu().numpy(), global_step=global_step,
+                tag=f"{tag_prefix}weights/{name}",
+                values=p.data.detach().cpu().numpy(),
+                global_step=global_step,
             )
 
 
@@ -464,12 +508,21 @@ class GradsScalarHandler(BaseWeightsScalarHandler):
 
     """
 
-    def __init__(self, model: nn.Module, reduction: Callable = torch.norm, tag: Optional[str] = None):
+    def __init__(
+        self,
+        model: nn.Module,
+        reduction: Callable = torch.norm,
+        tag: Optional[str] = None,
+    ):
         super(GradsScalarHandler, self).__init__(model, reduction, tag=tag)
 
-    def __call__(self, engine: Engine, logger: TensorboardLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: TensorboardLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, TensorboardLogger):
-            raise RuntimeError("Handler 'GradsScalarHandler' works only with TensorboardLogger")
+            raise RuntimeError(
+                "Handler 'GradsScalarHandler' works only with TensorboardLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
@@ -479,7 +532,9 @@ class GradsScalarHandler(BaseWeightsScalarHandler):
 
             name = name.replace(".", "/")
             logger.writer.add_scalar(
-                f"{tag_prefix}grads_{self.reduction.__name__}/{name}", self.reduction(p.grad), global_step
+                f"{tag_prefix}grads_{self.reduction.__name__}/{name}",
+                self.reduction(p.grad),
+                global_step,
             )
 
 
@@ -511,9 +566,13 @@ class GradsHistHandler(BaseWeightsHistHandler):
     def __init__(self, model: nn.Module, tag: Optional[str] = None):
         super(GradsHistHandler, self).__init__(model, tag=tag)
 
-    def __call__(self, engine: Engine, logger: TensorboardLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: TensorboardLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, TensorboardLogger):
-            raise RuntimeError("Handler 'GradsHistHandler' works only with TensorboardLogger")
+            raise RuntimeError(
+                "Handler 'GradsHistHandler' works only with TensorboardLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
@@ -523,5 +582,7 @@ class GradsHistHandler(BaseWeightsHistHandler):
 
             name = name.replace(".", "/")
             logger.writer.add_histogram(
-                tag=f"{tag_prefix}grads/{name}", values=p.grad.detach().cpu().numpy(), global_step=global_step
+                tag=f"{tag_prefix}grads/{name}",
+                values=p.grad.detach().cpu().numpy(),
+                global_step=global_step,
             )

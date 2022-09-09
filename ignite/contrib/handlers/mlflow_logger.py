@@ -6,11 +6,20 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import torch
 from torch.optim import Optimizer
 
-from ignite.contrib.handlers.base_logger import BaseLogger, BaseOptimizerParamsHandler, BaseOutputHandler
+from ignite.contrib.handlers.base_logger import (
+    BaseLogger,
+    BaseOptimizerParamsHandler,
+    BaseOutputHandler,
+)
 from ignite.engine import Engine, Events
 from ignite.handlers import global_step_from_engine
 
-__all__ = ["MLflowLogger", "OutputHandler", "OptimizerParamsHandler", "global_step_from_engine"]
+__all__ = [
+    "MLflowLogger",
+    "OutputHandler",
+    "OptimizerParamsHandler",
+    "global_step_from_engine",
+]
 
 
 class MLflowLogger(BaseLogger):
@@ -117,7 +126,9 @@ class MLflowLogger(BaseLogger):
     def _create_output_handler(self, *args: Any, **kwargs: Any) -> "OutputHandler":
         return OutputHandler(*args, **kwargs)
 
-    def _create_opt_params_handler(self, *args: Any, **kwargs: Any) -> "OptimizerParamsHandler":
+    def _create_opt_params_handler(
+        self, *args: Any, **kwargs: Any
+    ) -> "OptimizerParamsHandler":
         return OptimizerParamsHandler(*args, **kwargs)
 
 
@@ -214,9 +225,13 @@ class OutputHandler(BaseOutputHandler):
         output_transform: Optional[Callable] = None,
         global_step_transform: Optional[Callable] = None,
     ) -> None:
-        super(OutputHandler, self).__init__(tag, metric_names, output_transform, global_step_transform)
+        super(OutputHandler, self).__init__(
+            tag, metric_names, output_transform, global_step_transform
+        )
 
-    def __call__(self, engine: Engine, logger: MLflowLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: MLflowLogger, event_name: Union[str, Events]
+    ) -> None:
 
         if not isinstance(logger, MLflowLogger):
             raise TypeError("Handler 'OutputHandler' works only with MLflowLogger")
@@ -241,7 +256,9 @@ class OutputHandler(BaseOutputHandler):
                 for i, v in enumerate(value):
                     rendered_metrics[f"{self.tag} {key} {i}"] = v.item()
             else:
-                warnings.warn(f"MLflowLogger output_handler can not log metrics value type {type(value)}")
+                warnings.warn(
+                    f"MLflowLogger output_handler can not log metrics value type {type(value)}"
+                )
 
         # Additionally recheck metric names as MLflow rejects non-valid names with MLflowException
         from mlflow.utils.validation import _VALID_PARAM_AND_METRIC_NAMES
@@ -291,17 +308,25 @@ class OptimizerParamsHandler(BaseOptimizerParamsHandler):
         tag: common title for all produced plots. For example, 'generator'
     """
 
-    def __init__(self, optimizer: Optimizer, param_name: str = "lr", tag: Optional[str] = None):
+    def __init__(
+        self, optimizer: Optimizer, param_name: str = "lr", tag: Optional[str] = None
+    ):
         super(OptimizerParamsHandler, self).__init__(optimizer, param_name, tag)
 
-    def __call__(self, engine: Engine, logger: MLflowLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: MLflowLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, MLflowLogger):
-            raise TypeError("Handler OptimizerParamsHandler works only with MLflowLogger")
+            raise TypeError(
+                "Handler OptimizerParamsHandler works only with MLflowLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag} " if self.tag else ""
         params = {
-            f"{tag_prefix}{self.param_name} group_{i}": float(param_group[self.param_name])
+            f"{tag_prefix}{self.param_name} group_{i}": float(
+                param_group[self.param_name]
+            )
             for i, param_group in enumerate(self.optimizer.param_groups)
         }
 

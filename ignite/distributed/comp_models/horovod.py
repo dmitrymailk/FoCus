@@ -25,8 +25,7 @@ if has_hvd_support:
     HOROVOD = "horovod"
 
     class _HorovodDistModel(ComputationModel):
-        """Private class for `Horovod <https://horovod.readthedocs.io/en/stable/>`_ distributed computation model.
-        """
+        """Private class for `Horovod <https://horovod.readthedocs.io/en/stable/>`_ distributed computation model."""
 
         name = "horovod-dist"
 
@@ -49,19 +48,24 @@ if has_hvd_support:
             return _HorovodDistModel()
 
         @staticmethod
-        def create_from_backend(backend: str = HOROVOD, **kwargs: Any) -> "_HorovodDistModel":
+        def create_from_backend(
+            backend: str = HOROVOD, **kwargs: Any
+        ) -> "_HorovodDistModel":
             if backend not in _HorovodDistModel.available_backends:
-                raise ValueError(f"Backend should be one of '{_HorovodDistModel.available_backends}'")
+                raise ValueError(
+                    f"Backend should be one of '{_HorovodDistModel.available_backends}'"
+                )
 
             rank = _HorovodDistModel._get_hvd_rank()
             # hvd must be not initialized
             if rank > -1:
-                raise RuntimeError("Can not re-initialize Horovod if it is already initialized")
+                raise RuntimeError(
+                    "Can not re-initialize Horovod if it is already initialized"
+                )
             return _HorovodDistModel(backend, **kwargs)
 
         def __init__(self, backend: Optional[str] = None, **kwargs: Any) -> None:
-            """This is a private method. Please, use `create_from_backend` or `create_from_context`
-            """
+            """This is a private method. Please, use `create_from_backend` or `create_from_context`"""
             super(_HorovodDistModel, self).__init__()
             if backend is not None:
                 self._create_from_backend(backend, **kwargs)
@@ -119,7 +123,9 @@ if has_hvd_support:
             hvd.shutdown()
 
         @staticmethod
-        def _dist_worker_task_fn(backend: str, fn: Callable, args: Tuple, kwargs_dict: Mapping) -> None:
+        def _dist_worker_task_fn(
+            backend: str, fn: Callable, args: Tuple, kwargs_dict: Mapping
+        ) -> None:
             from ignite.distributed.utils import _set_model, finalize
 
             model = _HorovodDistModel.create_from_backend(backend)
@@ -164,7 +170,11 @@ if has_hvd_support:
             "ADASUM": hvd.mpi_ops.Adasum,
         }
 
-        _manual_reduce_op_map = {"MIN": torch.min, "MAX": torch.max, "PRODUCT": torch.prod}
+        _manual_reduce_op_map = {
+            "MIN": torch.min,
+            "MAX": torch.max,
+            "PRODUCT": torch.prod,
+        }
 
         def _do_all_reduce(self, tensor: torch.Tensor, op: str = "SUM") -> torch.Tensor:
             if op in self._manual_reduce_op_map:

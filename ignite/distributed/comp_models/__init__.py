@@ -12,7 +12,8 @@ if TYPE_CHECKING:
 
 
 def setup_available_computation_models() -> Tuple[
-    Type[Union[_SerialModel, "_NativeDistModel", "_XlaDistModel", "_HorovodDistModel"]], ...
+    Type[Union[_SerialModel, "_NativeDistModel", "_XlaDistModel", "_HorovodDistModel"]],
+    ...,
 ]:
     models = [
         _SerialModel,

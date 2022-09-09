@@ -73,7 +73,10 @@ class Recall(_BasePrecisionRecall):
         device: Union[str, torch.device] = torch.device("cpu"),
     ):
         super(Recall, self).__init__(
-            output_transform=output_transform, average=average, is_multilabel=is_multilabel, device=device
+            output_transform=output_transform,
+            average=average,
+            is_multilabel=is_multilabel,
+            device=device,
         )
 
     @reinit__is_reduced
@@ -114,10 +117,16 @@ class Recall(_BasePrecisionRecall):
 
         if self._type == "multilabel":
             if not self._average:
-                self._true_positives = torch.cat([self._true_positives, true_positives], dim=0)  # type: torch.Tensor
-                self._positives = torch.cat([self._positives, actual_positives], dim=0)  # type: torch.Tensor
+                self._true_positives = torch.cat(
+                    [self._true_positives, true_positives], dim=0
+                )  # type: torch.Tensor
+                self._positives = torch.cat(
+                    [self._positives, actual_positives], dim=0
+                )  # type: torch.Tensor
             else:
-                self._true_positives += torch.sum(true_positives / (actual_positives + self.eps))
+                self._true_positives += torch.sum(
+                    true_positives / (actual_positives + self.eps)
+                )
                 self._positives += len(actual_positives)
         else:
             self._true_positives += true_positives
@@ -187,7 +196,10 @@ class CharRecall(_BasePrecisionRecall):
         device: Union[str, torch.device] = torch.device("cpu"),
     ):
         super(CharRecall, self).__init__(
-            output_transform=output_transform, average=average, is_multilabel=is_multilabel, device=device
+            output_transform=output_transform,
+            average=average,
+            is_multilabel=is_multilabel,
+            device=device,
         )
 
     @reinit__is_reduced
@@ -205,4 +217,3 @@ class CharRecall(_BasePrecisionRecall):
 
         self._true_positives += true_positives
         self._positives += actual_positives
-

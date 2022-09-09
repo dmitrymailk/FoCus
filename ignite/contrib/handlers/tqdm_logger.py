@@ -124,7 +124,11 @@ class ProgressBar(BaseLogger):
 
     def _reset(self, pbar_total: Optional[int]) -> None:
         self.pbar = self.pbar_cls(
-            total=pbar_total, leave=self.persist, bar_format=self.bar_format, initial=1, **self.tqdm_kwargs
+            total=pbar_total,
+            leave=self.persist,
+            bar_format=self.bar_format,
+            initial=1,
+            **self.tqdm_kwargs,
         )
 
     def _close(self, engine: Engine) -> None:
@@ -139,7 +143,8 @@ class ProgressBar(BaseLogger):
 
     @staticmethod
     def _compare_lt(
-        event1: Union[Events, CallableEventWithFilter], event2: Union[Events, CallableEventWithFilter]
+        event1: Union[Events, CallableEventWithFilter],
+        event2: Union[Events, CallableEventWithFilter],
     ) -> bool:
         i1 = ProgressBar._events_order.index(event1)
         i2 = ProgressBar._events_order.index(event2)
@@ -162,7 +167,9 @@ class ProgressBar(BaseLogger):
         metric_names: Optional[str] = None,
         output_transform: Optional[Callable] = None,
         event_name: Union[Events, CallableEventWithFilter] = Events.ITERATION_COMPLETED,
-        closing_event_name: Union[Events, CallableEventWithFilter] = Events.EPOCH_COMPLETED,
+        closing_event_name: Union[
+            Events, CallableEventWithFilter
+        ] = Events.EPOCH_COMPLETED,
     ) -> None:
         """
         Attaches the progress bar to an engine object.
@@ -186,16 +193,25 @@ class ProgressBar(BaseLogger):
         desc = self.tqdm_kwargs.get("desc", None)
 
         if event_name not in engine._allowed_events:
-            raise ValueError(f"Logging event {event_name.name} is not in allowed events for this engine")
+            raise ValueError(
+                f"Logging event {event_name.name} is not in allowed events for this engine"
+            )
 
         if isinstance(closing_event_name, CallableEventWithFilter):
-            if closing_event_name.filter != CallableEventWithFilter.default_event_filter:
+            if (
+                closing_event_name.filter
+                != CallableEventWithFilter.default_event_filter
+            ):
                 raise ValueError("Closing Event should not be a filtered event")
 
         if not self._compare_lt(event_name, closing_event_name):
-            raise ValueError(f"Logging event {event_name} should be called before closing event {closing_event_name}")
+            raise ValueError(
+                f"Logging event {event_name} should be called before closing event {closing_event_name}"
+            )
 
-        log_handler = _OutputHandler(desc, metric_names, output_transform, closing_event_name=closing_event_name)
+        log_handler = _OutputHandler(
+            desc, metric_names, output_transform, closing_event_name=closing_event_name
+        )
 
         super(ProgressBar, self).attach(engine, log_handler, event_name)
         engine.add_event_handler(closing_event_name, self._close)
@@ -236,23 +252,31 @@ class _OutputHandler(BaseOutputHandler):
         description: str,
         metric_names: Optional[Union[str, List[str]]] = None,
         output_transform: Optional[Callable] = None,
-        closing_event_name: Union[Events, CallableEventWithFilter] = Events.EPOCH_COMPLETED,
+        closing_event_name: Union[
+            Events, CallableEventWithFilter
+        ] = Events.EPOCH_COMPLETED,
     ):
         if metric_names is None and output_transform is None:
             # This helps to avoid 'Either metric_names or output_transform should be defined' of BaseOutputHandler
             metric_names = []
-        super(_OutputHandler, self).__init__(description, metric_names, output_transform, global_step_transform=None)
+        super(_OutputHandler, self).__init__(
+            description, metric_names, output_transform, global_step_transform=None
+        )
         self.closing_event_name = closing_event_name
 
     @staticmethod
-    def get_max_number_events(event_name: Union[str, Events, CallableEventWithFilter], engine: Engine) -> Optional[int]:
+    def get_max_number_events(
+        event_name: Union[str, Events, CallableEventWithFilter], engine: Engine
+    ) -> Optional[int]:
         if event_name in (Events.ITERATION_STARTED, Events.ITERATION_COMPLETED):
             return engine.state.epoch_length
         if event_name in (Events.EPOCH_STARTED, Events.EPOCH_COMPLETED):
             return engine.state.max_epochs
         return 1
 
-    def __call__(self, engine: Engine, logger: ProgressBar, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: ProgressBar, event_name: Union[str, Events]
+    ) -> None:
 
         pbar_total = self.get_max_number_events(event_name, engine)
         if logger.pbar is None:
@@ -262,7 +286,9 @@ class _OutputHandler(BaseOutputHandler):
         default_desc = "Iteration" if max_epochs == 1 else "Epoch"
 
         desc = self.tag or default_desc
-        max_num_of_closing_events = self.get_max_number_events(self.closing_event_name, engine)
+        max_num_of_closing_events = self.get_max_number_events(
+            self.closing_event_name, engine
+        )
         if max_num_of_closing_events and max_num_of_closing_events > 1:
             global_step = engine.state.get_event_attrib_value(self.closing_event_name)
             desc += f" [{global_step}/{max_num_of_closing_events}]"
@@ -280,7 +306,9 @@ class _OutputHandler(BaseOutputHandler):
                         k = f"{key}_{i}"
                         rendered_metrics[k] = v.item()
                 else:
-                    warnings.warn(f"ProgressBar can not log tensor with {value.ndimension()} dimensions")
+                    warnings.warn(
+                        f"ProgressBar can not log tensor with {value.ndimension()} dimensions"
+                    )
             else:
                 rendered_metrics[key] = value
 

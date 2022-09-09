@@ -5,7 +5,9 @@ import torch
 from ignite.metrics import EpochMetric
 
 
-def median_absolute_percentage_error_compute_fn(y_pred: torch.Tensor, y: torch.Tensor) -> float:
+def median_absolute_percentage_error_compute_fn(
+    y_pred: torch.Tensor, y: torch.Tensor
+) -> float:
     e = torch.abs(y.view_as(y_pred) - y_pred) / torch.abs(y.view_as(y_pred))
     return 100.0 * torch.median(e).item()
 
@@ -41,8 +43,12 @@ class MedianAbsolutePercentageError(EpochMetric):
     """
 
     def __init__(
-        self, output_transform: Callable = lambda x: x, device: Union[str, torch.device] = torch.device("cpu")
+        self,
+        output_transform: Callable = lambda x: x,
+        device: Union[str, torch.device] = torch.device("cpu"),
     ):
         super(MedianAbsolutePercentageError, self).__init__(
-            median_absolute_percentage_error_compute_fn, output_transform=output_transform, device=device
+            median_absolute_percentage_error_compute_fn,
+            output_transform=output_transform,
+            device=device,
         )

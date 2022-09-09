@@ -75,7 +75,9 @@ class GpuInfo(Metric):
             mem_name = f"{name}:{i} mem(%)"
 
             if "fb_memory_usage" not in data_by_rank:
-                warnings.warn(f"No GPU memory usage information available in {data_by_rank}")
+                warnings.warn(
+                    f"No GPU memory usage information available in {data_by_rank}"
+                )
                 continue
             mem_report = data_by_rank["fb_memory_usage"]
             if not ("used" in mem_report and "total" in mem_report):
@@ -85,16 +87,22 @@ class GpuInfo(Metric):
                 )
                 continue
 
-            engine.state.metrics[mem_name] = int(mem_report["used"] * 100.0 / mem_report["total"])
+            engine.state.metrics[mem_name] = int(
+                mem_report["used"] * 100.0 / mem_report["total"]
+            )
 
         for i, data_by_rank in enumerate(data):
             util_name = f"{name}:{i} util(%)"
             if "utilization" not in data_by_rank:
-                warnings.warn(f"No GPU utilization information available in {data_by_rank}")
+                warnings.warn(
+                    f"No GPU utilization information available in {data_by_rank}"
+                )
                 continue
             util_report = data_by_rank["utilization"]
             if not ("gpu_util" in util_report):
-                warnings.warn(f"GPU utilization information does not provide 'gpu_util' information in {util_report}")
+                warnings.warn(
+                    f"GPU utilization information does not provide 'gpu_util' information in {util_report}"
+                )
                 continue
             try:
                 engine.state.metrics[util_name] = int(util_report["gpu_util"])
@@ -104,6 +112,9 @@ class GpuInfo(Metric):
 
     # TODO: see issue https://github.com/pytorch/ignite/issues/1405
     def attach(  # type: ignore
-        self, engine: Engine, name: str = "gpu", event_name: Union[str, EventEnum] = Events.ITERATION_COMPLETED
+        self,
+        engine: Engine,
+        name: str = "gpu",
+        event_name: Union[str, EventEnum] = Events.ITERATION_COMPLETED,
     ) -> None:
         engine.add_event_handler(event_name, self.completed, name)

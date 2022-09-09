@@ -46,5 +46,7 @@ class MeanError(_BaseRegression):
 
     def compute(self) -> float:
         if self._num_examples == 0:
-            raise NotComputableError("MeanError must have at least one example before it can be computed.")
+            raise NotComputableError(
+                "MeanError must have at least one example before it can be computed."
+            )
         return self._sum_of_errors / self._num_examples

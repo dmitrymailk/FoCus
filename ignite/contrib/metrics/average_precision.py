@@ -5,7 +5,9 @@ import torch
 from ignite.metrics import EpochMetric
 
 
-def average_precision_compute_fn(y_preds: torch.Tensor, y_targets: torch.Tensor) -> float:
+def average_precision_compute_fn(
+    y_preds: torch.Tensor, y_targets: torch.Tensor
+) -> float:
     from sklearn.metrics import average_precision_score
 
     y_true = y_targets.cpu().numpy()

@@ -6,7 +6,17 @@ import warnings
 from collections import defaultdict
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, DefaultDict, List, Mapping, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    DefaultDict,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 import torch
 from torch.nn import Module
@@ -123,19 +133,27 @@ class ClearMLLogger(BaseLogger):
     def __init__(self, *_: Any, **kwargs: Any):
         try:
             from clearml import Task
-            from clearml.binding.frameworks.tensorflow_bind import WeightsGradientHistHelper
+            from clearml.binding.frameworks.tensorflow_bind import (
+                WeightsGradientHistHelper,
+            )
         except ImportError:
             try:
                 # Backwards-compatibility for legacy Trains SDK
                 from trains import Task
-                from trains.binding.frameworks.tensorflow_bind import WeightsGradientHistHelper
+                from trains.binding.frameworks.tensorflow_bind import (
+                    WeightsGradientHistHelper,
+                )
             except ImportError:
                 raise RuntimeError(
                     "This contrib module requires clearml to be installed. "
                     "You may install clearml using: \n pip install clearml \n"
                 )
 
-        experiment_kwargs = {k: v for k, v in kwargs.items() if k not in ("project_name", "task_name", "task_type")}
+        experiment_kwargs = {
+            k: v
+            for k, v in kwargs.items()
+            if k not in ("project_name", "task_name", "task_type")
+        }
 
         if self.bypass_mode():
             warnings.warn("ClearMLSaver: running in bypass mode")
@@ -196,7 +214,9 @@ class ClearMLLogger(BaseLogger):
     def _create_output_handler(self, *args: Any, **kwargs: Any) -> "OutputHandler":
         return OutputHandler(*args, **kwargs)
 
-    def _create_opt_params_handler(self, *args: Any, **kwargs: Any) -> "OptimizerParamsHandler":
+    def _create_opt_params_handler(
+        self, *args: Any, **kwargs: Any
+    ) -> "OptimizerParamsHandler":
         return OptimizerParamsHandler(*args, **kwargs)
 
 
@@ -301,9 +321,13 @@ class OutputHandler(BaseOutputHandler):
         output_transform: Optional[Callable] = None,
         global_step_transform: Optional[Callable] = None,
     ):
-        super(OutputHandler, self).__init__(tag, metric_names, output_transform, global_step_transform)
+        super(OutputHandler, self).__init__(
+            tag, metric_names, output_transform, global_step_transform
+        )
 
-    def __call__(self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]
+    ) -> None:
 
         if not isinstance(logger, ClearMLLogger):
             raise RuntimeError("Handler OutputHandler works only with ClearMLLogger")
@@ -319,15 +343,26 @@ class OutputHandler(BaseOutputHandler):
             )
 
         for key, value in metrics.items():
-            if isinstance(value, numbers.Number) or isinstance(value, torch.Tensor) and value.ndimension() == 0:
-                logger.clearml_logger.report_scalar(title=self.tag, series=key, iteration=global_step, value=value)
+            if (
+                isinstance(value, numbers.Number)
+                or isinstance(value, torch.Tensor)
+                and value.ndimension() == 0
+            ):
+                logger.clearml_logger.report_scalar(
+                    title=self.tag, series=key, iteration=global_step, value=value
+                )
             elif isinstance(value, torch.Tensor) and value.ndimension() == 1:
                 for i, v in enumerate(value):
                     logger.clearml_logger.report_scalar(
-                        title=f"{self.tag}/{key}", series=str(i), iteration=global_step, value=v.item()
+                        title=f"{self.tag}/{key}",
+                        series=str(i),
+                        iteration=global_step,
+                        value=v.item(),
                     )
             else:
-                warnings.warn(f"ClearMLLogger output_handler can not log metrics value type {type(value)}")
+                warnings.warn(
+                    f"ClearMLLogger output_handler can not log metrics value type {type(value)}"
+                )
 
 
 class OptimizerParamsHandler(BaseOptimizerParamsHandler):
@@ -366,22 +401,32 @@ class OptimizerParamsHandler(BaseOptimizerParamsHandler):
         tag: common title for all produced plots. For example, "generator"
     """
 
-    def __init__(self, optimizer: Optimizer, param_name: str = "lr", tag: Optional[str] = None):
+    def __init__(
+        self, optimizer: Optimizer, param_name: str = "lr", tag: Optional[str] = None
+    ):
         super(OptimizerParamsHandler, self).__init__(optimizer, param_name, tag)
 
-    def __call__(self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, ClearMLLogger):
-            raise RuntimeError("Handler OptimizerParamsHandler works only with ClearMLLogger")
+            raise RuntimeError(
+                "Handler OptimizerParamsHandler works only with ClearMLLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
         params = {
-            str(i): float(param_group[self.param_name]) for i, param_group in enumerate(self.optimizer.param_groups)
+            str(i): float(param_group[self.param_name])
+            for i, param_group in enumerate(self.optimizer.param_groups)
         }
 
         for k, v in params.items():
             logger.clearml_logger.report_scalar(
-                title=f"{tag_prefix}{self.param_name}", series=k, value=v, iteration=global_step
+                title=f"{tag_prefix}{self.param_name}",
+                series=k,
+                value=v,
+                iteration=global_step,
             )
 
 
@@ -417,13 +462,19 @@ class WeightsScalarHandler(BaseWeightsScalarHandler):
 
     """
 
-    def __init__(self, model: Module, reduction: Callable = torch.norm, tag: Optional[str] = None):
+    def __init__(
+        self, model: Module, reduction: Callable = torch.norm, tag: Optional[str] = None
+    ):
         super(WeightsScalarHandler, self).__init__(model, reduction, tag=tag)
 
-    def __call__(self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]
+    ) -> None:
 
         if not isinstance(logger, ClearMLLogger):
-            raise RuntimeError("Handler WeightsScalarHandler works only with ClearMLLogger")
+            raise RuntimeError(
+                "Handler WeightsScalarHandler works only with ClearMLLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
@@ -472,9 +523,13 @@ class WeightsHistHandler(BaseWeightsHistHandler):
     def __init__(self, model: Module, tag: Optional[str] = None):
         super(WeightsHistHandler, self).__init__(model, tag=tag)
 
-    def __call__(self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, ClearMLLogger):
-            raise RuntimeError("Handler 'WeightsHistHandler' works only with ClearMLLogger")
+            raise RuntimeError(
+                "Handler 'WeightsHistHandler' works only with ClearMLLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
@@ -524,12 +579,18 @@ class GradsScalarHandler(BaseWeightsScalarHandler):
 
     """
 
-    def __init__(self, model: Module, reduction: Callable = torch.norm, tag: Optional[str] = None):
+    def __init__(
+        self, model: Module, reduction: Callable = torch.norm, tag: Optional[str] = None
+    ):
         super(GradsScalarHandler, self).__init__(model, reduction, tag=tag)
 
-    def __call__(self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, ClearMLLogger):
-            raise RuntimeError("Handler GradsScalarHandler works only with ClearMLLogger")
+            raise RuntimeError(
+                "Handler GradsScalarHandler works only with ClearMLLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
@@ -578,9 +639,13 @@ class GradsHistHandler(BaseWeightsHistHandler):
     def __init__(self, model: Module, tag: Optional[str] = None):
         super(GradsHistHandler, self).__init__(model, tag=tag)
 
-    def __call__(self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: ClearMLLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, ClearMLLogger):
-            raise RuntimeError("Handler 'GradsHistHandler' works only with ClearMLLogger")
+            raise RuntimeError(
+                "Handler 'GradsHistHandler' works only with ClearMLLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
@@ -653,18 +718,24 @@ class ClearMLSaver(DiskSaver):
         if not dirname:
             dirname = ""
             if idist.get_rank() == 0:
-                dirname = tempfile.mkdtemp(prefix=f"ignite_checkpoints_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S_')}")
+                dirname = tempfile.mkdtemp(
+                    prefix=f"ignite_checkpoints_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S_')}"
+                )
             if idist.get_world_size() > 1:
                 dirname = idist.all_gather(dirname)[0]  # type: ignore[index, assignment]
 
-            warnings.warn(f"ClearMLSaver created a temporary checkpoints directory: {dirname}")
+            warnings.warn(
+                f"ClearMLSaver created a temporary checkpoints directory: {dirname}"
+            )
             idist.barrier()
 
         # Let's set non-atomic tmp dir saving behaviour
         if "atomic" not in kwargs:
             kwargs["atomic"] = False
 
-        self._checkpoint_slots = defaultdict(list)  # type: DefaultDict[Union[str, Tuple[str, str]], List[Any]]
+        self._checkpoint_slots = defaultdict(
+            list
+        )  # type: DefaultDict[Union[str, Tuple[str, str]], List[Any]]
 
         super(ClearMLSaver, self).__init__(dirname=dirname, *args, **kwargs)  # type: ignore[misc]
 
@@ -723,8 +794,12 @@ class ClearMLSaver(DiskSaver):
                 self._slots.append(model_info.upload_filename)
                 slot = len(self._slots) - 1
 
-            model_info.upload_filename = f"{self._basename}_{slot}{os.path.splitext(self._filename)[1]}"
-            model_info.local_model_id = f"{self._checkpoint_key}:{model_info.upload_filename}"
+            model_info.upload_filename = (
+                f"{self._basename}_{slot}{os.path.splitext(self._filename)[1]}"
+            )
+            model_info.local_model_id = (
+                f"{self._checkpoint_key}:{model_info.upload_filename}"
+            )
             return model_info
 
         def post_callback(self, action: str, model_info: Any) -> Any:
@@ -733,10 +808,15 @@ class ClearMLSaver(DiskSaver):
 
             model_info.model.name = f"{model_info.task.name}: {self._filename}"
             prefix = "Checkpoint Metadata: "
-            metadata_items = ", ".join(f"{k}={v}" for k, v in self._metadata.items()) if self._metadata else "none"
+            metadata_items = (
+                ", ".join(f"{k}={v}" for k, v in self._metadata.items())
+                if self._metadata
+                else "none"
+            )
             metadata = f"{prefix}{metadata_items}"
             comment = "\n".join(
-                metadata if line.startswith(prefix) else line for line in (model_info.model.comment or "").split("\n")
+                metadata if line.startswith(prefix) else line
+                for line in (model_info.model.comment or "").split("\n")
             )
             if prefix not in comment:
                 comment += "\n" + metadata
@@ -744,7 +824,9 @@ class ClearMLSaver(DiskSaver):
 
             return model_info
 
-    def __call__(self, checkpoint: Mapping, filename: str, metadata: Optional[Mapping] = None) -> None:
+    def __call__(
+        self, checkpoint: Mapping, filename: str, metadata: Optional[Mapping] = None
+    ) -> None:
         try:
             from clearml.binding.frameworks import WeightsFileHandler
         except ImportError:

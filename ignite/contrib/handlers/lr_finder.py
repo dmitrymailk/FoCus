@@ -107,12 +107,18 @@ class FastaiLRFinder:
                 )
 
         if not trainer.has_event_handler(self._reached_num_iterations):
-            trainer.add_event_handler(Events.ITERATION_COMPLETED, self._reached_num_iterations, num_iter)
+            trainer.add_event_handler(
+                Events.ITERATION_COMPLETED, self._reached_num_iterations, num_iter
+            )
 
         # attach loss and lr logging
         if not trainer.has_event_handler(self._log_lr_and_loss):
             trainer.add_event_handler(
-                Events.ITERATION_COMPLETED, self._log_lr_and_loss, output_transform, smooth_f, diverge_th
+                Events.ITERATION_COMPLETED,
+                self._log_lr_and_loss,
+                output_transform,
+                smooth_f,
+                diverge_th,
             )
 
         self.logger.debug(f"Running LR finder for {num_iter} iterations")
@@ -122,18 +128,30 @@ class FastaiLRFinder:
         else:
             start_lr = optimizer.param_groups[0]["lr"]
             self._lr_schedule = PiecewiseLinear(
-                optimizer, param_name="lr", milestones_values=[(0, start_lr), (num_iter, end_lr)]
+                optimizer,
+                param_name="lr",
+                milestones_values=[(0, start_lr), (num_iter, end_lr)],
             )
         if not trainer.has_event_handler(self._lr_schedule):
-            trainer.add_event_handler(Events.ITERATION_COMPLETED, self._lr_schedule, num_iter)
+            trainer.add_event_handler(
+                Events.ITERATION_COMPLETED, self._lr_schedule, num_iter
+            )
 
     def _reset(self, trainer: Engine) -> None:
         self.logger.debug("Completed LR finder run")
         trainer.remove_event_handler(self._lr_schedule, Events.ITERATION_COMPLETED)  # type: ignore[arg-type]
         trainer.remove_event_handler(self._log_lr_and_loss, Events.ITERATION_COMPLETED)
-        trainer.remove_event_handler(self._reached_num_iterations, Events.ITERATION_COMPLETED)
+        trainer.remove_event_handler(
+            self._reached_num_iterations, Events.ITERATION_COMPLETED
+        )
 
-    def _log_lr_and_loss(self, trainer: Engine, output_transform: Callable, smooth_f: float, diverge_th: float) -> None:
+    def _log_lr_and_loss(
+        self,
+        trainer: Engine,
+        output_transform: Callable,
+        smooth_f: float,
+        diverge_th: float,
+    ) -> None:
         output = trainer.state.output
         loss = output_transform(output)
         lr = self._lr_schedule.get_param()  # type: ignore[union-attr]
@@ -186,7 +204,9 @@ class FastaiLRFinder:
         """
         return self._history
 
-    def plot(self, skip_start: int = 10, skip_end: int = 5, log_lr: bool = True) -> None:
+    def plot(
+        self, skip_start: int = 10, skip_end: int = 5, log_lr: bool = True
+    ) -> None:
         """Plots the learning rate range test.
 
         This method requires `matplotlib` package to be installed:
@@ -212,7 +232,9 @@ class FastaiLRFinder:
             )
 
         if not self._history:
-            raise RuntimeError("learning rate finder didn't run yet so results can't be plotted")
+            raise RuntimeError(
+                "learning rate finder didn't run yet so results can't be plotted"
+            )
 
         if skip_start < 0:
             raise ValueError("skip_start cannot be negative")
@@ -244,7 +266,9 @@ class FastaiLRFinder:
         Returns: learning rate at the minimum numerical gradient
         """
         if not self._history:
-            raise RuntimeError("learning rate finder didn't run yet so lr_suggestion can't be returned")
+            raise RuntimeError(
+                "learning rate finder didn't run yet so lr_suggestion can't be returned"
+            )
         loss = self._history["loss"]
         grads = torch.tensor([loss[i] - loss[i - 1] for i in range(1, len(loss))])
         min_grad_idx = grads.argmin() + 1
@@ -296,7 +320,9 @@ class FastaiLRFinder:
             lr_finder cannot be attached to more than one trainer at a time.
         """
         if not isinstance(to_save, Mapping):
-            raise TypeError(f"Argument to_save should be a mapping, but given {type(to_save)}")
+            raise TypeError(
+                f"Argument to_save should be a mapping, but given {type(to_save)}"
+            )
 
         Checkpoint._check_objects(to_save, "state_dict")
         Checkpoint._check_objects(to_save, "load_state_dict")
@@ -314,12 +340,18 @@ class FastaiLRFinder:
         if diverge_th < 1:
             raise ValueError("diverge_th should be larger than 1")
         if step_mode not in ["exp", "linear"]:
-            raise ValueError(f"step_mode should be 'exp' or 'linear', but given {step_mode}")
+            raise ValueError(
+                f"step_mode should be 'exp' or 'linear', but given {step_mode}"
+            )
         if num_iter is not None:
             if not isinstance(num_iter, int):
-                raise TypeError(f"if provided, num_iter should be an integer, but give {num_iter}")
+                raise TypeError(
+                    f"if provided, num_iter should be an integer, but give {num_iter}"
+                )
             if num_iter <= 0:
-                raise ValueError(f"if provided, num_iter should be positive, but give {num_iter}")
+                raise ValueError(
+                    f"if provided, num_iter should be positive, but give {num_iter}"
+                )
 
         # store to_save
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -372,7 +404,9 @@ class _ExponentialLR(_LRScheduler):
 
     """
 
-    def __init__(self, optimizer: Optimizer, end_lr: float, num_iter: int, last_epoch: int = -1):
+    def __init__(
+        self, optimizer: Optimizer, end_lr: float, num_iter: int, last_epoch: int = -1
+    ):
         self.end_lr = end_lr
         self.num_iter = num_iter
         super(_ExponentialLR, self).__init__(optimizer, last_epoch)

@@ -4,7 +4,13 @@ import torch
 
 import ignite.distributed as idist
 from ignite.engine import Engine, Events
-from ignite.metrics.metric import EpochWise, Metric, MetricUsage, reinit__is_reduced, sync_all_reduce
+from ignite.metrics.metric import (
+    EpochWise,
+    Metric,
+    MetricUsage,
+    reinit__is_reduced,
+    sync_all_reduce,
+)
 
 __all__ = ["RunningAverage"]
 
@@ -61,7 +67,9 @@ class RunningAverage(Metric):
 
         if isinstance(src, Metric):
             if output_transform is not None:
-                raise ValueError("Argument output_transform should be None if src is a Metric.")
+                raise ValueError(
+                    "Argument output_transform should be None if src is a Metric."
+                )
             if device is not None:
                 raise ValueError("Argument device should be None if src is a Metric.")
             self.src = src
@@ -96,11 +104,15 @@ class RunningAverage(Metric):
         if self._value is None:
             self._value = self._get_src_value()
         else:
-            self._value = self._value * self.alpha + (1.0 - self.alpha) * self._get_src_value()
+            self._value = (
+                self._value * self.alpha + (1.0 - self.alpha) * self._get_src_value()
+            )
 
         return self._value
 
-    def attach(self, engine: Engine, name: str, _usage: Union[str, MetricUsage] = EpochWise()) -> None:
+    def attach(
+        self, engine: Engine, name: str, _usage: Union[str, MetricUsage] = EpochWise()
+    ) -> None:
         if self.epoch_bound:
             # restart average every epoch
             engine.add_event_handler(Events.EPOCH_STARTED, self.started)

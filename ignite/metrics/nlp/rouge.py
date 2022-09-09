@@ -32,7 +32,9 @@ class Score(namedtuple("Score", ["match", "candidate", "reference"])):
         return self.match / self.reference if self.reference > 0 else 0
 
 
-def compute_ngram_scores(candidate: Sequence[Any], reference: Sequence[Any], n: int = 4) -> Score:
+def compute_ngram_scores(
+    candidate: Sequence[Any], reference: Sequence[Any], n: int = 4
+) -> Score:
     """
     Compute the score based on ngram co-occurence of sequences of items
 
@@ -126,14 +128,18 @@ class _BaseRouge(Metric):
         output_transform: Callable = lambda x: x,
         device: Union[str, torch.device] = torch.device("cpu"),
     ) -> None:
-        super(_BaseRouge, self).__init__(output_transform=output_transform, device=device)
+        super(_BaseRouge, self).__init__(
+            output_transform=output_transform, device=device
+        )
         self._alpha = alpha
         if not 0 <= self._alpha <= 1:
             raise ValueError(f"alpha must be in interval [0, 1] (got : {self._alpha})")
         self._multiref = multiref
         valid_multiref = ["best", "average"]
         if self._multiref not in valid_multiref:
-            raise ValueError(f"multiref : valid values are {valid_multiref} (got : {self._multiref})")
+            raise ValueError(
+                f"multiref : valid values are {valid_multiref} (got : {self._multiref})"
+            )
         self._mutliref_reducer = self._get_multiref_reducer()
 
     def _get_multiref_reducer(self) -> MultiRefReducer:
@@ -151,7 +157,13 @@ class _BaseRouge(Metric):
     @reinit__is_reduced
     def update(self, output: Tuple[Sequence[Any], Sequence[Sequence[Any]]]) -> None:
         candidate, references = output[0], output[1]
-        multiref_scores = [self._compute_score(candidate=candidate, reference=reference,) for reference in references]
+        multiref_scores = [
+            self._compute_score(
+                candidate=candidate,
+                reference=reference,
+            )
+            for reference in references
+        ]
         score = self._mutliref_reducer(multiref_scores)
         precision = score.precision()
         recall = score.recall()
@@ -159,13 +171,17 @@ class _BaseRouge(Metric):
         self._recall += recall
         precision_recall = precision * recall
         if precision_recall > 0:  # avoid zero division
-            self._fmeasure += precision_recall / ((1 - self._alpha) * precision + self._alpha * recall)
+            self._fmeasure += precision_recall / (
+                (1 - self._alpha) * precision + self._alpha * recall
+            )
         self._num_examples += 1
 
     @sync_all_reduce("_precision", "_recall", "_fmeasure", "_num_examples")
     def compute(self) -> Mapping:
         if self._num_examples == 0:
-            raise NotComputableError("Rouge metric must have at least one example before be computed")
+            raise NotComputableError(
+                "Rouge metric must have at least one example before be computed"
+            )
 
         return {
             f"{self._metric_name()}-P": float(self._precision / self._num_examples),
@@ -174,7 +190,9 @@ class _BaseRouge(Metric):
         }
 
     @abstractmethod
-    def _compute_score(self, candidate: Sequence[Any], reference: Sequence[Any]) -> Score:
+    def _compute_score(
+        self, candidate: Sequence[Any], reference: Sequence[Any]
+    ) -> Score:
         pass
 
     @abstractmethod
@@ -239,13 +257,24 @@ class RougeN(_BaseRouge):
         output_transform: Callable = lambda x: x,
         device: Union[str, torch.device] = torch.device("cpu"),
     ):
-        super(RougeN, self).__init__(multiref=multiref, alpha=alpha, output_transform=output_transform, device=device)
+        super(RougeN, self).__init__(
+            multiref=multiref,
+            alpha=alpha,
+            output_transform=output_transform,
+            device=device,
+        )
         self._ngram = ngram
         if self._ngram < 1:
-            raise ValueError(f"ngram order must be greater than zero (got : {self._ngram})")
+            raise ValueError(
+                f"ngram order must be greater than zero (got : {self._ngram})"
+            )
 
-    def _compute_score(self, candidate: Sequence[Any], reference: Sequence[Any]) -> Score:
-        return compute_ngram_scores(candidate=candidate, reference=reference, n=self._ngram)
+    def _compute_score(
+        self, candidate: Sequence[Any], reference: Sequence[Any]
+    ) -> Score:
+        return compute_ngram_scores(
+            candidate=candidate, reference=reference, n=self._ngram
+        )
 
     def _metric_name(self) -> str:
         return f"Rouge-{self._ngram}"
@@ -305,9 +334,16 @@ class RougeL(_BaseRouge):
         output_transform: Callable = lambda x: x,
         device: Union[str, torch.device] = torch.device("cpu"),
     ):
-        super(RougeL, self).__init__(multiref=multiref, alpha=alpha, output_transform=output_transform, device=device)
+        super(RougeL, self).__init__(
+            multiref=multiref,
+            alpha=alpha,
+            output_transform=output_transform,
+            device=device,
+        )
 
-    def _compute_score(self, candidate: Sequence[Any], reference: Sequence[Any]) -> Score:
+    def _compute_score(
+        self, candidate: Sequence[Any], reference: Sequence[Any]
+    ) -> Score:
         return compute_lcs_scores(candidate=candidate, reference=reference)
 
     def _metric_name(self) -> str:
@@ -374,10 +410,19 @@ class Rouge(Metric):
         for m in variants:
             variant: Optional[_BaseRouge] = None
             if isinstance(m, str) and m == "L":
-                variant = RougeL(multiref=multiref, alpha=alpha, output_transform=output_transform, device=device)
+                variant = RougeL(
+                    multiref=multiref,
+                    alpha=alpha,
+                    output_transform=output_transform,
+                    device=device,
+                )
             elif isinstance(m, int):
                 variant = RougeN(
-                    ngram=m, multiref=multiref, alpha=alpha, output_transform=output_transform, device=device
+                    ngram=m,
+                    multiref=multiref,
+                    alpha=alpha,
+                    output_transform=output_transform,
+                    device=device,
                 )
             else:
                 raise ValueError("variant must be 'L' or integer greater to zero")

@@ -90,7 +90,9 @@ class PSNR(Metric):
 
     @reinit__is_reduced
     def reset(self) -> None:
-        self._sum_of_batchwise_psnr = torch.tensor(0.0, dtype=torch.float64, device=self._device)
+        self._sum_of_batchwise_psnr = torch.tensor(
+            0.0, dtype=torch.float64, device=self._device
+        )
         self._num_examples = 0
 
     @reinit__is_reduced
@@ -99,14 +101,18 @@ class PSNR(Metric):
         y_pred, y = output[0].detach(), output[1].detach()
 
         dim = tuple(range(1, y.ndim))
-        mse_error = torch.pow(y_pred.double() - y.view_as(y_pred).double(), 2).mean(dim=dim)
-        self._sum_of_batchwise_psnr += torch.sum(10.0 * torch.log10(self.data_range ** 2 / (mse_error + 1e-10))).to(
-            device=self._device
+        mse_error = torch.pow(y_pred.double() - y.view_as(y_pred).double(), 2).mean(
+            dim=dim
         )
+        self._sum_of_batchwise_psnr += torch.sum(
+            10.0 * torch.log10(self.data_range**2 / (mse_error + 1e-10))
+        ).to(device=self._device)
         self._num_examples += y.shape[0]
 
     @sync_all_reduce("_sum_of_batchwise_psnr", "_num_examples")
     def compute(self) -> torch.Tensor:
         if self._num_examples == 0:
-            raise NotComputableError("PSNR must have at least one example before it can be computed.")
+            raise NotComputableError(
+                "PSNR must have at least one example before it can be computed."
+            )
         return self._sum_of_batchwise_psnr / self._num_examples

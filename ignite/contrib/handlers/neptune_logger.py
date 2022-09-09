@@ -193,14 +193,22 @@ class NeptuneLogger(BaseLogger):
 
         if kwargs.get("offline_mode", False):
             self.mode = "offline"
-            neptune.init(project_qualified_name="dry-run/project", backend=neptune.OfflineBackend())
+            neptune.init(
+                project_qualified_name="dry-run/project",
+                backend=neptune.OfflineBackend(),
+            )
         else:
             self.mode = "online"
-            neptune.init(api_token=kwargs.get("api_token"), project_qualified_name=kwargs.get("project_name"))
+            neptune.init(
+                api_token=kwargs.get("api_token"),
+                project_qualified_name=kwargs.get("project_name"),
+            )
 
         kwargs["name"] = kwargs.pop("experiment_name", None)
         self._experiment_kwargs = {
-            k: v for k, v in kwargs.items() if k not in ["api_token", "project_name", "offline_mode"]
+            k: v
+            for k, v in kwargs.items()
+            if k not in ["api_token", "project_name", "offline_mode"]
         }
 
         self.experiment = neptune.create_experiment(**self._experiment_kwargs)
@@ -211,7 +219,9 @@ class NeptuneLogger(BaseLogger):
     def _create_output_handler(self, *args: Any, **kwargs: Any) -> "OutputHandler":
         return OutputHandler(*args, **kwargs)
 
-    def _create_opt_params_handler(self, *args: Any, **kwargs: Any) -> "OptimizerParamsHandler":
+    def _create_opt_params_handler(
+        self, *args: Any, **kwargs: Any
+    ) -> "OptimizerParamsHandler":
         return OptimizerParamsHandler(*args, **kwargs)
 
 
@@ -324,9 +334,13 @@ class OutputHandler(BaseOutputHandler):
         output_transform: Optional[Callable] = None,
         global_step_transform: Optional[Callable] = None,
     ):
-        super(OutputHandler, self).__init__(tag, metric_names, output_transform, global_step_transform)
+        super(OutputHandler, self).__init__(
+            tag, metric_names, output_transform, global_step_transform
+        )
 
-    def __call__(self, engine: Engine, logger: NeptuneLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: NeptuneLogger, event_name: Union[str, Events]
+    ) -> None:
 
         if not isinstance(logger, NeptuneLogger):
             raise TypeError("Handler OutputHandler works only with NeptuneLogger")
@@ -342,13 +356,21 @@ class OutputHandler(BaseOutputHandler):
             )
 
         for key, value in metrics.items():
-            if isinstance(value, numbers.Number) or isinstance(value, torch.Tensor) and value.ndimension() == 0:
+            if (
+                isinstance(value, numbers.Number)
+                or isinstance(value, torch.Tensor)
+                and value.ndimension() == 0
+            ):
                 logger.log_metric(f"{self.tag}/{key}", x=global_step, y=value)
             elif isinstance(value, torch.Tensor) and value.ndimension() == 1:
                 for i, v in enumerate(value):
-                    logger.log_metric(f"{self.tag}/{key}/{i}", x=global_step, y=v.item())
+                    logger.log_metric(
+                        f"{self.tag}/{key}/{i}", x=global_step, y=v.item()
+                    )
             else:
-                warnings.warn(f"NeptuneLogger output_handler can not log metrics value type {type(value)}")
+                warnings.warn(
+                    f"NeptuneLogger output_handler can not log metrics value type {type(value)}"
+                )
 
 
 class OptimizerParamsHandler(BaseOptimizerParamsHandler):
@@ -391,17 +413,25 @@ class OptimizerParamsHandler(BaseOptimizerParamsHandler):
         tag: common title for all produced plots. For example, "generator"
     """
 
-    def __init__(self, optimizer: Optimizer, param_name: str = "lr", tag: Optional[str] = None):
+    def __init__(
+        self, optimizer: Optimizer, param_name: str = "lr", tag: Optional[str] = None
+    ):
         super(OptimizerParamsHandler, self).__init__(optimizer, param_name, tag)
 
-    def __call__(self, engine: Engine, logger: NeptuneLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: NeptuneLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, NeptuneLogger):
-            raise TypeError("Handler OptimizerParamsHandler works only with NeptuneLogger")
+            raise TypeError(
+                "Handler OptimizerParamsHandler works only with NeptuneLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
         params = {
-            f"{tag_prefix}{self.param_name}/group_{i}": float(param_group[self.param_name])
+            f"{tag_prefix}{self.param_name}/group_{i}": float(
+                param_group[self.param_name]
+            )
             for i, param_group in enumerate(self.optimizer.param_groups)
         }
 
@@ -445,13 +475,22 @@ class WeightsScalarHandler(BaseWeightsScalarHandler):
 
     """
 
-    def __init__(self, model: nn.Module, reduction: Callable = torch.norm, tag: Optional[str] = None):
+    def __init__(
+        self,
+        model: nn.Module,
+        reduction: Callable = torch.norm,
+        tag: Optional[str] = None,
+    ):
         super(WeightsScalarHandler, self).__init__(model, reduction, tag=tag)
 
-    def __call__(self, engine: Engine, logger: NeptuneLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: NeptuneLogger, event_name: Union[str, Events]
+    ) -> None:
 
         if not isinstance(logger, NeptuneLogger):
-            raise TypeError("Handler WeightsScalarHandler works only with NeptuneLogger")
+            raise TypeError(
+                "Handler WeightsScalarHandler works only with NeptuneLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
@@ -461,7 +500,9 @@ class WeightsScalarHandler(BaseWeightsScalarHandler):
 
             name = name.replace(".", "/")
             logger.log_metric(
-                f"{tag_prefix}weights_{self.reduction.__name__}/{name}", x=global_step, y=self.reduction(p.data),
+                f"{tag_prefix}weights_{self.reduction.__name__}/{name}",
+                x=global_step,
+                y=self.reduction(p.data),
             )
 
 
@@ -501,10 +542,17 @@ class GradsScalarHandler(BaseWeightsScalarHandler):
 
     """
 
-    def __init__(self, model: nn.Module, reduction: Callable = torch.norm, tag: Optional[str] = None):
+    def __init__(
+        self,
+        model: nn.Module,
+        reduction: Callable = torch.norm,
+        tag: Optional[str] = None,
+    ):
         super(GradsScalarHandler, self).__init__(model, reduction, tag=tag)
 
-    def __call__(self, engine: Engine, logger: NeptuneLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: NeptuneLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, NeptuneLogger):
             raise TypeError("Handler GradsScalarHandler works only with NeptuneLogger")
 
@@ -516,7 +564,9 @@ class GradsScalarHandler(BaseWeightsScalarHandler):
 
             name = name.replace(".", "/")
             logger.log_metric(
-                f"{tag_prefix}grads_{self.reduction.__name__}/{name}", x=global_step, y=self.reduction(p.grad),
+                f"{tag_prefix}grads_{self.reduction.__name__}/{name}",
+                x=global_step,
+                y=self.reduction(p.grad),
             )
 
 
@@ -580,7 +630,9 @@ class NeptuneSaver(BaseSaveHandler):
         self._logger = neptune_logger
 
     @idist.one_rank_only()
-    def __call__(self, checkpoint: Mapping, filename: str, metadata: Optional[Mapping] = None) -> None:
+    def __call__(
+        self, checkpoint: Mapping, filename: str, metadata: Optional[Mapping] = None
+    ) -> None:
         # wont work on XLA
 
         with tempfile.NamedTemporaryFile() as tmp:

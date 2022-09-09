@@ -2,7 +2,17 @@ import numbers
 import weakref
 from enum import Enum
 from types import DynamicClassAttribute
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator, List, Optional, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Union,
+)
 
 from torch.utils.data import DataLoader
 
@@ -11,7 +21,14 @@ from ignite.engine.utils import _check_signature
 if TYPE_CHECKING:
     from ignite.engine.engine import Engine
 
-__all__ = ["CallableEventWithFilter", "EventEnum", "Events", "State", "EventsList", "RemovableEventHandle"]
+__all__ = [
+    "CallableEventWithFilter",
+    "EventEnum",
+    "Events",
+    "State",
+    "EventsList",
+    "RemovableEventHandle",
+]
 
 
 class CallableEventWithFilter:
@@ -26,7 +43,12 @@ class CallableEventWithFilter:
         name: The enum-name of the current object. Only needed for internal use. Do not touch!
     """
 
-    def __init__(self, value: str, event_filter: Optional[Callable] = None, name: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        value: str,
+        event_filter: Optional[Callable] = None,
+        name: Optional[str] = None,
+    ) -> None:
         if event_filter is None:
             event_filter = CallableEventWithFilter.default_event_filter
         self.filter = event_filter
@@ -49,7 +71,10 @@ class CallableEventWithFilter:
         return self._value_
 
     def __call__(
-        self, event_filter: Optional[Callable] = None, every: Optional[int] = None, once: Optional[int] = None
+        self,
+        event_filter: Optional[Callable] = None,
+        every: Optional[int] = None,
+        once: Optional[int] = None,
     ) -> "CallableEventWithFilter":
         """
         Makes the event class callable and accepts either an arbitrary callable as filter
@@ -71,7 +96,9 @@ class CallableEventWithFilter:
         if (event_filter is not None) and not callable(event_filter):
             raise TypeError("Argument event_filter should be a callable")
 
-        if (every is not None) and not (isinstance(every, numbers.Integral) and every > 0):
+        if (every is not None) and not (
+            isinstance(every, numbers.Integral) and every > 0
+        ):
             raise ValueError("Argument every should be integer and greater than zero")
 
         if (once is not None) and not (isinstance(once, numbers.Integral) and once > 0):
@@ -331,7 +358,9 @@ class EventsList:
 
     def _append(self, event: Union[Events, CallableEventWithFilter]) -> None:
         if not isinstance(event, (Events, CallableEventWithFilter)):
-            raise TypeError(f"Argument event should be Events or CallableEventWithFilter, got: {type(event)}")
+            raise TypeError(
+                f"Argument event should be Events or CallableEventWithFilter, got: {type(event)}"
+            )
         self._events.append(event)
 
     def __getitem__(self, item: int) -> Union[Events, CallableEventWithFilter]:
@@ -408,7 +437,9 @@ class State:
             if not hasattr(self, value):
                 setattr(self, value, 0)
 
-    def get_event_attrib_value(self, event_name: Union[str, Events, CallableEventWithFilter]) -> int:
+    def get_event_attrib_value(
+        self, event_name: Union[str, Events, CallableEventWithFilter]
+    ) -> int:
         """Get the value of Event attribute with given `event_name`."""
         if event_name not in State.event_to_attr:
             raise RuntimeError(f"Unknown event name '{event_name}'")
@@ -453,7 +484,10 @@ class RemovableEventHandle:
     """
 
     def __init__(
-        self, event_name: Union[CallableEventWithFilter, Enum, EventsList, Events], handler: Callable, engine: "Engine"
+        self,
+        event_name: Union[CallableEventWithFilter, Enum, EventsList, Events],
+        handler: Callable,
+        engine: "Engine",
     ) -> None:
         self.event_name = event_name
         self.handler = weakref.ref(handler)

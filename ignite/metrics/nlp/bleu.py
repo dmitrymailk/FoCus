@@ -13,7 +13,9 @@ __all__ = ["Bleu"]
 
 def _closest_ref_length(references: Sequence[Sequence[Any]], hyp_len: int) -> int:
     ref_lens = (len(reference) for reference in references)
-    closest_ref_len = min(ref_lens, key=lambda ref_len: (abs(ref_len - hyp_len), ref_len))
+    closest_ref_len = min(
+        ref_lens, key=lambda ref_len: (abs(ref_len - hyp_len), ref_len)
+    )
     return closest_ref_len
 
 
@@ -37,7 +39,10 @@ class _Smoother:
     def smooth1(numerators: Counter, denominators: Counter) -> Sequence[float]:
         epsilon = 0.1
         denominators_ = [max(1, d) for d in denominators.values()]
-        return [n / d if n != 0 else epsilon / d for n, d in zip(numerators.values(), denominators_)]
+        return [
+            n / d if n != 0 else epsilon / d
+            for n, d in zip(numerators.values(), denominators_)
+        ]
 
     @staticmethod
     def nltk_smooth2(numerators: Counter, denominators: Counter) -> Sequence[float]:
@@ -50,9 +55,13 @@ class _Smoother:
 
     @staticmethod
     def _smooth2(
-        numerators: Union[ValuesView[int], Sequence[int]], denominators: Union[ValuesView[int], Sequence[int]]
+        numerators: Union[ValuesView[int], Sequence[int]],
+        denominators: Union[ValuesView[int], Sequence[int]],
     ) -> Sequence[float]:
-        return [(n + 1) / (d + 1) if i != 0 else n / d for i, (n, d) in enumerate(zip(numerators, denominators))]
+        return [
+            (n + 1) / (d + 1) if i != 0 else n / d
+            for i, (n, d) in enumerate(zip(numerators, denominators))
+        ]
 
     @staticmethod
     def no_smooth(numerators: Counter, denominators: Counter) -> Sequence[float]:
@@ -126,7 +135,11 @@ class Bleu(Metric):
         self.smoother = _Smoother(method=smooth)
         super(Bleu, self).__init__(output_transform=output_transform, device=device)
 
-    def _corpus_bleu(self, references: Sequence[Sequence[Any]], candidates: Sequence[Sequence[Any]],) -> float:
+    def _corpus_bleu(
+        self,
+        references: Sequence[Sequence[Any]],
+        candidates: Sequence[Sequence[Any]],
+    ) -> float:
         p_numerators: Counter = Counter()
         p_denominators: Counter = Counter()
 
@@ -159,7 +172,10 @@ class Bleu(Metric):
         hyp_lengths = [len(hyp) for hyp in candidates]
 
         # Calculate the closest reference lengths.
-        ref_lengths = [_closest_ref_length(refs, hyp_len) for refs, hyp_len in zip(references, hyp_lengths)]
+        ref_lengths = [
+            _closest_ref_length(refs, hyp_len)
+            for refs, hyp_len in zip(references, hyp_lengths)
+        ]
 
         # Sum of hypothesis and references lengths
         hyp_len = sum(hyp_lengths)
@@ -193,5 +209,7 @@ class Bleu(Metric):
     @sync_all_reduce("_sum_of_bleu", "_num_sentences")
     def compute(self) -> torch.Tensor:
         if self._num_sentences == 0:
-            raise NotComputableError("Bleu must have at least one example before it can be computed.")
+            raise NotComputableError(
+                "Bleu must have at least one example before it can be computed."
+            )
         return self._sum_of_bleu / self._num_sentences

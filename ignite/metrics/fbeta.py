@@ -45,10 +45,14 @@ def Fbeta(
         raise ValueError(f"Beta should be a positive integer, but given {beta}")
 
     if precision is not None and output_transform is not None:
-        raise ValueError("If precision argument is provided, output_transform should be None")
+        raise ValueError(
+            "If precision argument is provided, output_transform should be None"
+        )
 
     if recall is not None and output_transform is not None:
-        raise ValueError("If recall argument is provided, output_transform should be None")
+        raise ValueError(
+            "If recall argument is provided, output_transform should be None"
+        )
 
     if precision is None:
         precision = Precision(
@@ -68,7 +72,12 @@ def Fbeta(
     elif recall._average:
         raise ValueError("Input recall metric should have average=False")
 
-    fbeta = (1.0 + beta ** 2) * precision * recall / (beta ** 2 * precision + recall + 1e-15)
+    fbeta = (
+        (1.0 + beta**2)
+        * precision
+        * recall
+        / (beta**2 * precision + recall + 1e-15)
+    )
 
     if average:
         fbeta = fbeta.mean().item()

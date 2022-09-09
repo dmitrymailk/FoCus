@@ -13,7 +13,9 @@ def roc_auc_compute_fn(y_preds: torch.Tensor, y_targets: torch.Tensor) -> float:
     return roc_auc_score(y_true, y_pred)
 
 
-def roc_auc_curve_compute_fn(y_preds: torch.Tensor, y_targets: torch.Tensor) -> Tuple[Any, Any, Any]:
+def roc_auc_curve_compute_fn(
+    y_preds: torch.Tensor, y_targets: torch.Tensor
+) -> Tuple[Any, Any, Any]:
     from sklearn.metrics import roc_curve
 
     y_true = y_targets.numpy()
@@ -65,7 +67,10 @@ class ROC_AUC(EpochMetric):
             raise RuntimeError("This contrib module requires sklearn to be installed.")
 
         super(ROC_AUC, self).__init__(
-            roc_auc_compute_fn, output_transform=output_transform, check_compute_fn=check_compute_fn, device=device,
+            roc_auc_compute_fn,
+            output_transform=output_transform,
+            check_compute_fn=check_compute_fn,
+            device=device,
         )
 
 
@@ -99,7 +104,9 @@ class RocCurve(EpochMetric):
 
     """
 
-    def __init__(self, output_transform: Callable = lambda x: x, check_compute_fn: bool = False) -> None:
+    def __init__(
+        self, output_transform: Callable = lambda x: x, check_compute_fn: bool = False
+    ) -> None:
 
         try:
             from sklearn.metrics import roc_curve  # noqa: F401
@@ -107,5 +114,7 @@ class RocCurve(EpochMetric):
             raise RuntimeError("This contrib module requires sklearn to be installed.")
 
         super(RocCurve, self).__init__(
-            roc_auc_curve_compute_fn, output_transform=output_transform, check_compute_fn=check_compute_fn
+            roc_auc_curve_compute_fn,
+            output_transform=output_transform,
+            check_compute_fn=check_compute_fn,
         )

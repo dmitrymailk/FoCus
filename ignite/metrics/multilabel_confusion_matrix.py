@@ -55,11 +55,15 @@ class MultiLabelConfusionMatrix(Metric):
         self.num_classes = num_classes
         self._num_examples = 0
         self.normalized = normalized
-        super(MultiLabelConfusionMatrix, self).__init__(output_transform=output_transform, device=device)
+        super(MultiLabelConfusionMatrix, self).__init__(
+            output_transform=output_transform, device=device
+        )
 
     @reinit__is_reduced
     def reset(self) -> None:
-        self.confusion_matrix = torch.zeros(self.num_classes, 2, 2, dtype=torch.int64, device=self._device)
+        self.confusion_matrix = torch.zeros(
+            self.num_classes, 2, 2, dtype=torch.int64, device=self._device
+        )
         self._num_examples = 0
 
     @reinit__is_reduced
@@ -79,12 +83,16 @@ class MultiLabelConfusionMatrix(Metric):
         fn = y_total - tp
         tn = y_reshaped.shape[1] - tp - fp - fn
 
-        self.confusion_matrix += torch.stack([tn, fp, fn, tp], dim=1).reshape(-1, 2, 2).to(self._device)
+        self.confusion_matrix += (
+            torch.stack([tn, fp, fn, tp], dim=1).reshape(-1, 2, 2).to(self._device)
+        )
 
     @sync_all_reduce("confusion_matrix", "_num_examples")
     def compute(self) -> torch.Tensor:
         if self._num_examples == 0:
-            raise NotComputableError("Confusion matrix must have at least one example before it can be computed.")
+            raise NotComputableError(
+                "Confusion matrix must have at least one example before it can be computed."
+            )
 
         if self.normalized:
             conf = self.confusion_matrix.to(dtype=torch.float64)
@@ -107,13 +115,19 @@ class MultiLabelConfusionMatrix(Metric):
             )
 
         if y_pred.shape[0] != y.shape[0]:
-            raise ValueError(f"y_pred and y have different batch size: {y_pred.shape[0]} vs {y.shape[0]}")
+            raise ValueError(
+                f"y_pred and y have different batch size: {y_pred.shape[0]} vs {y.shape[0]}"
+            )
 
         if y_pred.shape[1] != self.num_classes:
-            raise ValueError(f"y_pred does not have correct number of classes: {y_pred.shape[1]} vs {self.num_classes}")
+            raise ValueError(
+                f"y_pred does not have correct number of classes: {y_pred.shape[1]} vs {self.num_classes}"
+            )
 
         if y.shape[1] != self.num_classes:
-            raise ValueError(f"y does not have correct number of classes: {y.shape[1]} vs {self.num_classes}")
+            raise ValueError(
+                f"y does not have correct number of classes: {y.shape[1]} vs {self.num_classes}"
+            )
 
         if y.shape != y_pred.shape:
             raise ValueError("y and y_pred shapes must match.")
@@ -125,8 +139,8 @@ class MultiLabelConfusionMatrix(Metric):
         if y.dtype not in valid_types:
             raise ValueError(f"y must be of any type: {valid_types}")
 
-        if not torch.equal(y_pred, y_pred ** 2):
+        if not torch.equal(y_pred, y_pred**2):
             raise ValueError("y_pred must be a binary tensor")
 
-        if not torch.equal(y, y ** 2):
+        if not torch.equal(y, y**2):
             raise ValueError("y must be a binary tensor")

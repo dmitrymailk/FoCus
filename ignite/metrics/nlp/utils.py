@@ -51,7 +51,9 @@ def lcs(seq_a: Sequence[Any], seq_b: Sequence[Any]) -> int:
     return dp[m][n]
 
 
-def modified_precision(references: Sequence[Sequence[Any]], candidate: Any, n: int) -> Tuple[int, int]:
+def modified_precision(
+    references: Sequence[Sequence[Any]], candidate: Any, n: int
+) -> Tuple[int, int]:
     """
     Compute the modified precision
 

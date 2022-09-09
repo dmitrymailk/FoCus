@@ -17,7 +17,9 @@ from ignite.utils import setup_logger
 __all__ = ["auto_dataloader", "auto_model", "auto_optim", "DistributedProxySampler"]
 
 
-def auto_dataloader(dataset: Dataset, **kwargs: Any) -> Union[DataLoader, "_MpDeviceLoader"]:
+def auto_dataloader(
+    dataset: Dataset, **kwargs: Any
+) -> Union[DataLoader, "_MpDeviceLoader"]:
     """Helper method to create a dataloader adapted for non-distributed and distributed configurations (supporting
     all available backends from :meth:`~ignite.distributed.utils.available_backends()`).
 
@@ -80,7 +82,10 @@ def auto_dataloader(dataset: Dataset, **kwargs: Any) -> Union[DataLoader, "_MpDe
                 )  # type: Union[DistributedProxySampler, DistributedSampler, Sampler]
             else:
                 sampler = DistributedSampler(
-                    dataset, num_replicas=world_size, rank=rank, shuffle=kwargs.get("shuffle", True)
+                    dataset,
+                    num_replicas=world_size,
+                    rank=rank,
+                    shuffle=kwargs.get("shuffle", True),
                 )
                 # we need to remove "shuffle" from kwargs if sampler is used
                 if "shuffle" in kwargs:
@@ -93,7 +98,11 @@ def auto_dataloader(dataset: Dataset, **kwargs: Any) -> Union[DataLoader, "_MpDe
                 "with distributed configuration"
             )
 
-    if idist.has_xla_support and idist.backend() == idist_xla.XLA_TPU and kwargs.get("pin_memory", False):
+    if (
+        idist.has_xla_support
+        and idist.backend() == idist_xla.XLA_TPU
+        and kwargs.get("pin_memory", False)
+    ):
         # TODO: How about XLA GPU ?
         warnings.warn(
             "Found incompatible options: xla support and pin_memory args equal True. "
@@ -103,10 +112,16 @@ def auto_dataloader(dataset: Dataset, **kwargs: Any) -> Union[DataLoader, "_MpDe
     else:
         kwargs["pin_memory"] = kwargs.get("pin_memory", "cuda" in idist.device().type)
 
-    logger.info(f"Use data loader kwargs for dataset '{repr(dataset)[:20].strip()}': \n\t{kwargs}")
+    logger.info(
+        f"Use data loader kwargs for dataset '{repr(dataset)[:20].strip()}': \n\t{kwargs}"
+    )
     dataloader = DataLoader(dataset, **kwargs)
 
-    if idist.has_xla_support and idist.backend() == idist_xla.XLA_TPU and world_size > 1:
+    if (
+        idist.has_xla_support
+        and idist.backend() == idist_xla.XLA_TPU
+        and world_size > 1
+    ):
 
         logger.info("DataLoader is wrapped by `MpDeviceLoader` on XLA")
 
@@ -194,11 +209,21 @@ def auto_model(model: nn.Module, sync_bn: bool = False, **kwargs: Any) -> nn.Mod
                 model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
 
             if "device_ids" in kwargs:
-                raise ValueError(f"Argument kwargs should not contain 'device_ids', but got {kwargs}")
+                raise ValueError(
+                    f"Argument kwargs should not contain 'device_ids', but got {kwargs}"
+                )
 
             lrank = idist.get_local_rank()
-            logger.info(f"Apply torch DistributedDataParallel on model, device id: {lrank}")
-            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[lrank,], **kwargs)
+            logger.info(
+                f"Apply torch DistributedDataParallel on model, device id: {lrank}"
+            )
+            model = torch.nn.parallel.DistributedDataParallel(
+                model,
+                device_ids=[
+                    lrank,
+                ],
+                **kwargs,
+            )
         elif idist.has_native_dist_support and bnd == idist_native.GLOO:
             if sync_bn:
                 logger.info("Convert batch norm to sync batch norm")
@@ -209,7 +234,9 @@ def auto_model(model: nn.Module, sync_bn: bool = False, **kwargs: Any) -> nn.Mod
         elif idist.has_hvd_support and bnd == idist_hvd.HOROVOD:
             import horovod.torch as hvd
 
-            logger.info("Broadcast the initial variable states from rank 0 to all other processes")
+            logger.info(
+                "Broadcast the initial variable states from rank 0 to all other processes"
+            )
             hvd.broadcast_parameters(model.state_dict(), root_rank=0)
 
     # not distributed but multiple GPUs reachable so data parallel model
@@ -253,7 +280,11 @@ def auto_optim(optimizer: Optimizer) -> Optimizer:
     """
     bnd = idist.backend()
     if idist.has_xla_support and bnd == idist_xla.XLA_TPU:
-        cls = type(optimizer.__class__.__name__, (optimizer.__class__,), dict(_XLADistributedOptimizer.__dict__))
+        cls = type(
+            optimizer.__class__.__name__,
+            (optimizer.__class__,),
+            dict(_XLADistributedOptimizer.__dict__),
+        )
         return cls(optimizer)
 
     if idist.has_hvd_support and bnd == idist_hvd.HOROVOD:
@@ -282,10 +313,17 @@ class DistributedProxySampler(DistributedSampler):
 
     """
 
-    def __init__(self, sampler: Sampler, num_replicas: Optional[int] = None, rank: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        sampler: Sampler,
+        num_replicas: Optional[int] = None,
+        rank: Optional[int] = None,
+    ) -> None:
 
         if not isinstance(sampler, Sampler):
-            raise TypeError(f"Argument sampler should be instance of torch Sampler, but given: {type(sampler)}")
+            raise TypeError(
+                f"Argument sampler should be instance of torch Sampler, but given: {type(sampler)}"
+            )
 
         if not hasattr(sampler, "__len__"):
             raise TypeError("Argument sampler should have length")
@@ -328,7 +366,9 @@ if idist.has_xla_support:
             self._parallel_loader_kwargs = kwargs
 
         def __iter__(self) -> Iterator:
-            parallel_loader = ParallelLoader(self._loader, [self._device], **self._parallel_loader_kwargs)
+            parallel_loader = ParallelLoader(
+                self._loader, [self._device], **self._parallel_loader_kwargs
+            )
             return parallel_loader.per_device_loader(self._device)
 
         def __len__(self) -> int:

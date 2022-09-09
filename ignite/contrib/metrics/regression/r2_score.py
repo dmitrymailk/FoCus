@@ -54,5 +54,9 @@ class R2Score(_BaseRegression):
     @sync_all_reduce("_num_examples", "_sum_of_errors", "_y_sq_sum", "_y_sum")
     def compute(self) -> float:
         if self._num_examples == 0:
-            raise NotComputableError("R2Score must have at least one example before it can be computed.")
-        return 1 - self._sum_of_errors.item() / (self._y_sq_sum.item() - (self._y_sum.item() ** 2) / self._num_examples)
+            raise NotComputableError(
+                "R2Score must have at least one example before it can be computed."
+            )
+        return 1 - self._sum_of_errors.item() / (
+            self._y_sq_sum.item() - (self._y_sum.item() ** 2) / self._num_examples
+        )

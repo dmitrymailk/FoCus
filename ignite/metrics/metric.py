@@ -31,7 +31,12 @@ class MetricUsage:
             :meth:`~ignite.metrics.metric.Metric.iteration_completed`.
     """
 
-    def __init__(self, started: Events, completed: Events, iteration_completed: CallableEventWithFilter) -> None:
+    def __init__(
+        self,
+        started: Events,
+        completed: Events,
+        iteration_completed: CallableEventWithFilter,
+    ) -> None:
         self.__started = started
         self.__completed = completed
         self.__iteration_completed = iteration_completed
@@ -204,7 +209,9 @@ class Metric(metaclass=ABCMeta):
     _required_output_keys = required_output_keys
 
     def __init__(
-        self, output_transform: Callable = lambda x: x, device: Union[str, torch.device] = torch.device("cpu"),
+        self,
+        output_transform: Callable = lambda x: x,
+        device: Union[str, torch.device] = torch.device("cpu"),
     ):
         self._output_transform = output_transform
 
@@ -212,7 +219,9 @@ class Metric(metaclass=ABCMeta):
         if idist.get_world_size() > 1:
 
             # check if reset and update methods are decorated. Compute may not be decorated
-            if not (hasattr(self.reset, "_decorated") and hasattr(self.update, "_decorated")):
+            if not (
+                hasattr(self.reset, "_decorated") and hasattr(self.update, "_decorated")
+            ):
                 warnings.warn(
                     f"{self.__class__.__name__} class does not support distributed setting. "
                     "Computed result is not collected across all computing devices",
@@ -221,7 +230,9 @@ class Metric(metaclass=ABCMeta):
 
         # Some metrics have a large performance regression when run on XLA devices, so for now, we disallow it.
         if torch.device(device).type == "xla":
-            raise ValueError("Cannot create metric on an XLA device. Use device='cpu' instead.")
+            raise ValueError(
+                "Cannot create metric on an XLA device. Use device='cpu' instead."
+            )
 
         self._device = torch.device(device)
         self._is_reduced = False
@@ -312,7 +323,9 @@ class Metric(metaclass=ABCMeta):
         result = self.compute()
         if isinstance(result, Mapping):
             if name in result.keys():
-                raise ValueError(f"Argument name '{name}' is conflicting with mapping keys: {list(result.keys())}")
+                raise ValueError(
+                    f"Argument name '{name}' is conflicting with mapping keys: {list(result.keys())}"
+                )
 
             for key, value in result.items():
                 engine.state.metrics[key] = value
@@ -330,12 +343,16 @@ class Metric(metaclass=ABCMeta):
             elif usage == BatchWise.usage_name:
                 usage = BatchWise()
             else:
-                raise ValueError(f"usage should be 'EpochWise.usage_name' or 'BatchWise.usage_name', get {usage}")
+                raise ValueError(
+                    f"usage should be 'EpochWise.usage_name' or 'BatchWise.usage_name', get {usage}"
+                )
         if not isinstance(usage, MetricUsage):
             raise TypeError(f"Unhandled usage type {type(usage)}")
         return usage
 
-    def attach(self, engine: Engine, name: str, usage: Union[str, MetricUsage] = EpochWise()) -> None:
+    def attach(
+        self, engine: Engine, name: str, usage: Union[str, MetricUsage] = EpochWise()
+    ) -> None:
         """
         Attaches current metric to provided engine. On the end of engine's run, `engine.state.metrics` dictionary will
         contain computed metric's value under provided name.
@@ -372,11 +389,17 @@ class Metric(metaclass=ABCMeta):
         usage = self._check_usage(usage)
         if not engine.has_event_handler(self.started, usage.STARTED):
             engine.add_event_handler(usage.STARTED, self.started)
-        if not engine.has_event_handler(self.iteration_completed, usage.ITERATION_COMPLETED):
-            engine.add_event_handler(usage.ITERATION_COMPLETED, self.iteration_completed)
+        if not engine.has_event_handler(
+            self.iteration_completed, usage.ITERATION_COMPLETED
+        ):
+            engine.add_event_handler(
+                usage.ITERATION_COMPLETED, self.iteration_completed
+            )
         engine.add_event_handler(usage.COMPLETED, self.completed, name)
 
-    def detach(self, engine: Engine, usage: Union[str, MetricUsage] = EpochWise()) -> None:
+    def detach(
+        self, engine: Engine, usage: Union[str, MetricUsage] = EpochWise()
+    ) -> None:
         """
         Detaches current metric from the engine and no metric's computation is done during the run.
         This method in conjunction with :meth:`~ignite.metrics.metric.Metric.attach` can be useful if several
@@ -417,10 +440,16 @@ class Metric(metaclass=ABCMeta):
             engine.remove_event_handler(self.completed, usage.COMPLETED)
         if engine.has_event_handler(self.started, usage.STARTED):
             engine.remove_event_handler(self.started, usage.STARTED)
-        if engine.has_event_handler(self.iteration_completed, usage.ITERATION_COMPLETED):
-            engine.remove_event_handler(self.iteration_completed, usage.ITERATION_COMPLETED)
+        if engine.has_event_handler(
+            self.iteration_completed, usage.ITERATION_COMPLETED
+        ):
+            engine.remove_event_handler(
+                self.iteration_completed, usage.ITERATION_COMPLETED
+            )
 
-    def is_attached(self, engine: Engine, usage: Union[str, MetricUsage] = EpochWise()) -> bool:
+    def is_attached(
+        self, engine: Engine, usage: Union[str, MetricUsage] = EpochWise()
+    ) -> bool:
         """
         Checks if current metric is attached to provided engine. If attached, metric's computed
         value is written to `engine.state.metrics` dictionary.
@@ -466,12 +495,12 @@ class Metric(metaclass=ABCMeta):
     def __pow__(self, other: Any) -> "MetricsLambda":
         from ignite.metrics.metrics_lambda import MetricsLambda
 
-        return MetricsLambda(lambda x, y: x ** y, self, other)
+        return MetricsLambda(lambda x, y: x**y, self, other)
 
     def __rpow__(self, other: Any) -> "MetricsLambda":
         from ignite.metrics.metrics_lambda import MetricsLambda
 
-        return MetricsLambda(lambda x, y: x ** y, other, self)
+        return MetricsLambda(lambda x, y: x**y, other, self)
 
     def __mod__(self, other: Any) -> "MetricsLambda":
         from ignite.metrics.metrics_lambda import MetricsLambda
@@ -545,7 +574,9 @@ def sync_all_reduce(*attrs: Any) -> Callable:
                             attr, op = attr.split(":")
                             valid_ops = ["MIN", "MAX", "SUM", "PRODUCT"]
                             if op not in valid_ops:
-                                raise ValueError(f"Reduction operation is not valid (expected : {valid_ops}, got: {op}")
+                                raise ValueError(
+                                    f"Reduction operation is not valid (expected : {valid_ops}, got: {op}"
+                                )
                             op_kwargs["op"] = op
                         t = getattr(self, attr, None)
                         if t is not None:

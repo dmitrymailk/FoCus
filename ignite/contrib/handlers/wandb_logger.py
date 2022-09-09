@@ -3,11 +3,20 @@ from typing import Any, Callable, List, Optional, Union
 
 from torch.optim import Optimizer
 
-from ignite.contrib.handlers.base_logger import BaseLogger, BaseOptimizerParamsHandler, BaseOutputHandler
+from ignite.contrib.handlers.base_logger import (
+    BaseLogger,
+    BaseOptimizerParamsHandler,
+    BaseOutputHandler,
+)
 from ignite.engine import Engine, Events
 from ignite.handlers import global_step_from_engine
 
-__all__ = ["WandBLogger", "OutputHandler", "OptimizerParamsHandler", "global_step_from_engine"]
+__all__ = [
+    "WandBLogger",
+    "OutputHandler",
+    "OptimizerParamsHandler",
+    "global_step_from_engine",
+]
 
 
 class WandBLogger(BaseLogger):
@@ -144,7 +153,9 @@ class WandBLogger(BaseLogger):
     def _create_output_handler(self, *args: Any, **kwargs: Any) -> "OutputHandler":
         return OutputHandler(*args, **kwargs)
 
-    def _create_opt_params_handler(self, *args: Any, **kwargs: Any) -> "OptimizerParamsHandler":
+    def _create_opt_params_handler(
+        self, *args: Any, **kwargs: Any
+    ) -> "OptimizerParamsHandler":
         return OptimizerParamsHandler(*args, **kwargs)
 
 
@@ -264,10 +275,14 @@ class OutputHandler(BaseOutputHandler):
         super().__init__(tag, metric_names, output_transform, global_step_transform)
         self.sync = sync
 
-    def __call__(self, engine: Engine, logger: WandBLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: WandBLogger, event_name: Union[str, Events]
+    ) -> None:
 
         if not isinstance(logger, WandBLogger):
-            raise RuntimeError(f"Handler '{self.__class__.__name__}' works only with WandBLogger.")
+            raise RuntimeError(
+                f"Handler '{self.__class__.__name__}' works only with WandBLogger."
+            )
 
         global_step = self.global_step_transform(engine, event_name)  # type: ignore[misc]
         if not isinstance(global_step, int):
@@ -326,19 +341,29 @@ class OptimizerParamsHandler(BaseOptimizerParamsHandler):
     """
 
     def __init__(
-        self, optimizer: Optimizer, param_name: str = "lr", tag: Optional[str] = None, sync: Optional[bool] = None,
+        self,
+        optimizer: Optimizer,
+        param_name: str = "lr",
+        tag: Optional[str] = None,
+        sync: Optional[bool] = None,
     ):
         super(OptimizerParamsHandler, self).__init__(optimizer, param_name, tag)
         self.sync = sync
 
-    def __call__(self, engine: Engine, logger: WandBLogger, event_name: Union[str, Events]) -> None:
+    def __call__(
+        self, engine: Engine, logger: WandBLogger, event_name: Union[str, Events]
+    ) -> None:
         if not isinstance(logger, WandBLogger):
-            raise RuntimeError("Handler OptimizerParamsHandler works only with WandBLogger")
+            raise RuntimeError(
+                "Handler OptimizerParamsHandler works only with WandBLogger"
+            )
 
         global_step = engine.state.get_event_attrib_value(event_name)
         tag_prefix = f"{self.tag}/" if self.tag else ""
         params = {
-            f"{tag_prefix}{self.param_name}/group_{i}": float(param_group[self.param_name])
+            f"{tag_prefix}{self.param_name}/group_{i}": float(
+                param_group[self.param_name]
+            )
             for i, param_group in enumerate(self.optimizer.param_groups)
         }
         logger.log(params, step=global_step, sync=self.sync)

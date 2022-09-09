@@ -24,7 +24,9 @@ class _BasePrecisionRecall(_BaseClassification):
         self._average = average
         self.eps = 1e-20
         super(_BasePrecisionRecall, self).__init__(
-            output_transform=output_transform, is_multilabel=is_multilabel, device=device
+            output_transform=output_transform,
+            is_multilabel=is_multilabel,
+            device=device,
         )
 
     @reinit__is_reduced
@@ -34,13 +36,19 @@ class _BasePrecisionRecall(_BaseClassification):
 
         if self._is_multilabel:
             init_value = 0.0 if self._average else []
-            self._true_positives = torch.tensor(init_value, dtype=torch.float64, device=self._device)
-            self._positives = torch.tensor(init_value, dtype=torch.float64, device=self._device)
+            self._true_positives = torch.tensor(
+                init_value, dtype=torch.float64, device=self._device
+            )
+            self._positives = torch.tensor(
+                init_value, dtype=torch.float64, device=self._device
+            )
 
         super(_BasePrecisionRecall, self).reset()
 
     def compute(self) -> Union[torch.Tensor, float]:
-        is_scalar = not isinstance(self._positives, torch.Tensor) or self._positives.ndim == 0
+        is_scalar = (
+            not isinstance(self._positives, torch.Tensor) or self._positives.ndim == 0
+        )
         if is_scalar and self._positives == 0:
             raise NotComputableError(
                 f"{self.__class__.__name__} must have at least one example before it can be computed."
@@ -50,7 +58,9 @@ class _BasePrecisionRecall(_BaseClassification):
                 self._true_positives = idist.all_reduce(self._true_positives)  # type: ignore[assignment]
                 self._positives = idist.all_reduce(self._positives)  # type: ignore[assignment]
             else:
-                self._true_positives = cast(torch.Tensor, idist.all_gather(self._true_positives))
+                self._true_positives = cast(
+                    torch.Tensor, idist.all_gather(self._true_positives)
+                )
                 self._positives = cast(torch.Tensor, idist.all_gather(self._positives))
             self._is_reduced = True  # type: bool
 
@@ -125,7 +135,10 @@ class Precision(_BasePrecisionRecall):
         device: Union[str, torch.device] = torch.device("cpu"),
     ):
         super(Precision, self).__init__(
-            output_transform=output_transform, average=average, is_multilabel=is_multilabel, device=device
+            output_transform=output_transform,
+            average=average,
+            is_multilabel=is_multilabel,
+            device=device,
         )
 
     @reinit__is_reduced
@@ -166,14 +179,21 @@ class Precision(_BasePrecisionRecall):
 
         if self._type == "multilabel":
             if not self._average:
-                self._true_positives = torch.cat([self._true_positives, true_positives], dim=0)  # type: torch.Tensor
-                self._positives = torch.cat([self._positives, all_positives], dim=0)  # type: torch.Tensor
+                self._true_positives = torch.cat(
+                    [self._true_positives, true_positives], dim=0
+                )  # type: torch.Tensor
+                self._positives = torch.cat(
+                    [self._positives, all_positives], dim=0
+                )  # type: torch.Tensor
             else:
-                self._true_positives += torch.sum(true_positives / (all_positives + self.eps))
+                self._true_positives += torch.sum(
+                    true_positives / (all_positives + self.eps)
+                )
                 self._positives += len(all_positives)
         else:
             self._true_positives += true_positives
             self._positives += all_positives
+
 
 class CharPrecision(_BasePrecisionRecall):
     r"""Calculates precision for binary and multiclass data.
@@ -238,7 +258,10 @@ class CharPrecision(_BasePrecisionRecall):
         device: Union[str, torch.device] = torch.device("cpu"),
     ):
         super(CharPrecision, self).__init__(
-            output_transform=output_transform, average=average, is_multilabel=is_multilabel, device=device
+            output_transform=output_transform,
+            average=average,
+            is_multilabel=is_multilabel,
+            device=device,
         )
 
     @reinit__is_reduced

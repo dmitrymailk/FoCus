@@ -3,11 +3,29 @@ import functools
 import logging
 import random
 import warnings
-from typing import Any, Callable, Dict, Optional, TextIO, Tuple, Type, TypeVar, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Optional,
+    TextIO,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 import torch
 
-__all__ = ["convert_tensor", "apply_to_tensor", "apply_to_type", "to_onehot", "setup_logger", "manual_seed"]
+__all__ = [
+    "convert_tensor",
+    "apply_to_tensor",
+    "apply_to_type",
+    "to_onehot",
+    "setup_logger",
+    "manual_seed",
+]
 
 
 def convert_tensor(
@@ -25,13 +43,18 @@ def convert_tensor(
     """
 
     def _func(tensor: torch.Tensor) -> torch.Tensor:
-        return tensor.to(device=device, non_blocking=non_blocking) if device is not None else tensor
+        return (
+            tensor.to(device=device, non_blocking=non_blocking)
+            if device is not None
+            else tensor
+        )
 
     return apply_to_tensor(x, _func)
 
 
 def apply_to_tensor(
-    x: Union[torch.Tensor, collections.Sequence, collections.Mapping, str, bytes], func: Callable
+    x: Union[torch.Tensor, collections.Sequence, collections.Mapping, str, bytes],
+    func: Callable,
 ) -> Union[torch.Tensor, collections.Sequence, collections.Mapping, str, bytes]:
     """Apply a function on a tensor or mapping, or sequence of tensors.
 
@@ -59,11 +82,17 @@ def apply_to_type(
     if isinstance(x, (str, bytes)):
         return x
     if isinstance(x, collections.Mapping):
-        return cast(Callable, type(x))({k: apply_to_type(sample, input_type, func) for k, sample in x.items()})
+        return cast(Callable, type(x))(
+            {k: apply_to_type(sample, input_type, func) for k, sample in x.items()}
+        )
     if isinstance(x, tuple) and hasattr(x, "_fields"):  # namedtuple
-        return cast(Callable, type(x))(*(apply_to_type(sample, input_type, func) for sample in x))
+        return cast(Callable, type(x))(
+            *(apply_to_type(sample, input_type, func) for sample in x)
+        )
     if isinstance(x, collections.Sequence):
-        return cast(Callable, type(x))([apply_to_type(sample, input_type, func) for sample in x])
+        return cast(Callable, type(x))(
+            [apply_to_type(sample, input_type, func) for sample in x]
+        )
     raise TypeError((f"x must contain {input_type}, dicts or lists; found {type(x)}"))
 
 
@@ -193,7 +222,10 @@ def manual_seed(seed: int) -> None:
 
 
 def deprecated(
-    deprecated_in: str, removed_in: str = "", reasons: Tuple[str, ...] = (), raise_exception: bool = False
+    deprecated_in: str,
+    removed_in: str = "",
+    reasons: Tuple[str, ...] = (),
+    raise_exception: bool = False,
 ) -> Callable:
 
     F = TypeVar("F", bound=Callable[..., Any])
@@ -213,7 +245,9 @@ def deprecated(
             warnings.warn(deprecation_warning, DeprecationWarning, stacklevel=2)
             return func(*args, **kwargs)
 
-        appended_doc = f".. deprecated:: {deprecated_in}" + ("\n\n\t" if len(reasons) else "")
+        appended_doc = f".. deprecated:: {deprecated_in}" + (
+            "\n\n\t" if len(reasons) else ""
+        )
 
         for reason in reasons:
             appended_doc += "\n\t- " + reason

@@ -6,7 +6,18 @@ from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from copy import copy
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 import torch
 from torch.optim.lr_scheduler import _LRScheduler
@@ -44,7 +55,10 @@ class ParamScheduler(metaclass=ABCMeta):
 
         if not (
             isinstance(optimizer, Optimizer)
-            or (hasattr(optimizer, "param_groups") and isinstance(optimizer.param_groups, Sequence))
+            or (
+                hasattr(optimizer, "param_groups")
+                and isinstance(optimizer.param_groups, Sequence)
+            )
         ):
             raise TypeError(
                 "Argument optimizer should be torch.optim.Optimizer or has attribute 'param_groups' as list/tuple, "
@@ -56,7 +70,12 @@ class ParamScheduler(metaclass=ABCMeta):
         self.param_name = param_name
         self.event_index = 0
         self._save_history = save_history
-        self._state_attrs = ["event_index", "param_name", "save_history", "param_group_index"]
+        self._state_attrs = [
+            "event_index",
+            "param_name",
+            "save_history",
+            "param_group_index",
+        ]
 
     def __call__(self, engine: Optional[Engine], name: Optional[str] = None) -> None:
 
@@ -123,7 +142,9 @@ class ParamScheduler(metaclass=ABCMeta):
             state_dict: a dict containing parameters.
         """
         if not isinstance(state_dict, Mapping):
-            raise TypeError(f"Argument state_dict should be a dictionary, but given {type(state_dict)}")
+            raise TypeError(
+                f"Argument state_dict should be a dictionary, but given {type(state_dict)}"
+            )
 
         for name in self._state_attrs:
             if name not in state_dict:
@@ -147,7 +168,9 @@ class ParamScheduler(metaclass=ABCMeta):
         pass
 
     @classmethod
-    def simulate_values(cls, num_events: int, **scheduler_kwargs: Any) -> List[List[int]]:
+    def simulate_values(
+        cls, num_events: int, **scheduler_kwargs: Any
+    ) -> List[List[int]]:
         """Method to simulate scheduled values during `num_events` events.
 
         Args:
@@ -176,10 +199,14 @@ class ParamScheduler(metaclass=ABCMeta):
             if key in scheduler_kwargs:
                 del scheduler_kwargs[key]
         values = []
-        scheduler = cls(optimizer=_get_fake_optimizer(), save_history=False, **scheduler_kwargs)
+        scheduler = cls(
+            optimizer=_get_fake_optimizer(), save_history=False, **scheduler_kwargs
+        )
         for i in range(num_events):
             scheduler(engine=None)
-            values.append([i, scheduler.optimizer_param_groups[0][scheduler.param_name]])
+            values.append(
+                [i, scheduler.optimizer_param_groups[0][scheduler.param_name]]
+            )
         return values
 
     @classmethod
@@ -265,7 +292,10 @@ class CyclicalScheduler(ParamScheduler):
         param_group_index: Optional[int] = None,
     ):
         super(CyclicalScheduler, self).__init__(
-            optimizer, param_name, save_history=save_history, param_group_index=param_group_index
+            optimizer,
+            param_name,
+            save_history=save_history,
+            param_group_index=param_group_index,
         )
         self.start_value = start_value
         self.end_value = end_value
@@ -276,7 +306,9 @@ class CyclicalScheduler(ParamScheduler):
         self.end_value_mult = end_value_mult
 
         if self.cycle_size < 2:
-            raise ValueError(f"Argument cycle_size should be positive and larger than 1, but given {cycle_size}")
+            raise ValueError(
+                f"Argument cycle_size should be positive and larger than 1, but given {cycle_size}"
+            )
 
         self._state_attrs += [
             "start_value",
@@ -340,7 +372,10 @@ class LinearCyclicalScheduler(CyclicalScheduler):
 
     def get_param(self) -> float:
         cycle_progress = self.event_index / self.cycle_size
-        return self.end_value + (self.start_value - self.end_value) * abs(cycle_progress - 0.5) * 2
+        return (
+            self.end_value
+            + (self.start_value - self.end_value) * abs(cycle_progress - 0.5) * 2
+        )
 
 
 class CosineAnnealingScheduler(CyclicalScheduler):
@@ -405,10 +440,11 @@ class CosineAnnealingScheduler(CyclicalScheduler):
     """
 
     def get_param(self) -> float:
-        """Method to get current optimizer's parameter value
-        """
+        """Method to get current optimizer's parameter value"""
         cycle_progress = self.event_index / self.cycle_size
-        return self.start_value + ((self.end_value - self.start_value) / 2) * (1 - math.cos(math.pi * cycle_progress))
+        return self.start_value + ((self.end_value - self.start_value) / 2) * (
+            1 - math.cos(math.pi * cycle_progress)
+        )
 
 
 class ConcatScheduler(ParamScheduler):
@@ -444,10 +480,17 @@ class ConcatScheduler(ParamScheduler):
 
     """
 
-    def __init__(self, schedulers: List[ParamScheduler], durations: List[int], save_history: bool = False):
+    def __init__(
+        self,
+        schedulers: List[ParamScheduler],
+        durations: List[int],
+        save_history: bool = False,
+    ):
 
         if not isinstance(schedulers, Sequence):
-            raise TypeError(f"Argument schedulers should be a sequence, but given {schedulers}")
+            raise TypeError(
+                f"Argument schedulers should be a sequence, but given {schedulers}"
+            )
 
         if len(schedulers) < 2:
             raise ValueError(
@@ -455,18 +498,25 @@ class ConcatScheduler(ParamScheduler):
             )
 
         if not isinstance(durations, (list, tuple)):
-            raise TypeError(f"Argument durations should be list/tuple, but given {durations}")
+            raise TypeError(
+                f"Argument durations should be list/tuple, but given {durations}"
+            )
 
         if not all([isinstance(t, numbers.Integral) for t in durations]):
-            raise ValueError(f"Argument durations should be list/tuple of integers, but given {durations}")
+            raise ValueError(
+                f"Argument durations should be list/tuple of integers, but given {durations}"
+            )
 
         if len(schedulers) != len(durations) + 1:
             raise ValueError(
-                "Incorrect number schedulers or duration values, " f"given {len(schedulers)} and {len(durations)}"
+                "Incorrect number schedulers or duration values, "
+                f"given {len(schedulers)} and {len(durations)}"
             )
 
         for i, scheduler in enumerate(schedulers):
-            if not isinstance(scheduler, ParamScheduler) and not isinstance(scheduler, ParamGroupScheduler):
+            if not isinstance(scheduler, ParamScheduler) and not isinstance(
+                scheduler, ParamGroupScheduler
+            ):
                 raise TypeError(
                     f"Value at index {i} of schedulers should be a parameter scheduler, but given {type(scheduler)}"
                 )
@@ -475,7 +525,9 @@ class ConcatScheduler(ParamScheduler):
         self.durations = durations
 
         tmp_optimizers = [s.optimizer for s in self.schedulers]
-        tmp_list_optimizers = [s if isinstance(s, list) else [s] for s in tmp_optimizers]
+        tmp_list_optimizers = [
+            s if isinstance(s, list) else [s] for s in tmp_optimizers
+        ]
         param_optimizers = list(itertools.chain(*tmp_list_optimizers))
 
         optimizer = list(set(param_optimizers))
@@ -483,7 +535,9 @@ class ConcatScheduler(ParamScheduler):
             raise ValueError("schedulers should be related to same optimizer")
 
         tmp_param_names = [s.param_name for s in self.schedulers]
-        tmp_list_param_names = [s if isinstance(s, list) else [s] for s in tmp_param_names]
+        tmp_list_param_names = [
+            s if isinstance(s, list) else [s] for s in tmp_param_names
+        ]
         param_names = list(itertools.chain(*tmp_list_param_names))
 
         param_name = list(set(param_names))
@@ -523,7 +577,9 @@ class ConcatScheduler(ParamScheduler):
             state_dict: a dict containing parameters.
         """
         if not isinstance(state_dict, Mapping):
-            raise TypeError(f"Argument state_dict should be a dictionary, but given {type(state_dict)}")
+            raise TypeError(
+                f"Argument state_dict should be a dictionary, but given {type(state_dict)}"
+            )
 
         if "schedulers" not in state_dict:
             raise ValueError(
@@ -544,7 +600,9 @@ class ConcatScheduler(ParamScheduler):
     def _setup_scheduler(self) -> None:
         self._current_scheduler = self.schedulers[self._scheduler_index]
         self._current_duration = (
-            self.durations[self._scheduler_index] if self._scheduler_index < len(self.durations) else -1
+            self.durations[self._scheduler_index]
+            if self._scheduler_index < len(self.durations)
+            else -1
         )
 
     def __call__(self, engine: Optional[Engine], name: Optional[str] = None) -> None:
@@ -595,12 +653,18 @@ class ConcatScheduler(ParamScheduler):
         """
         if param_names is not None:
             if not isinstance(param_names, (list, tuple)):
-                raise TypeError(f"Argument param_names should be list or tuple, but given {type(param_names)}")
+                raise TypeError(
+                    f"Argument param_names should be list or tuple, but given {type(param_names)}"
+                )
             if not all(isinstance(item, str) for item in param_names):
-                raise ValueError(f"Argument param_names should be list or tuple of strings, but given {param_names}")
+                raise ValueError(
+                    f"Argument param_names should be list or tuple of strings, but given {param_names}"
+                )
 
         tmp_param_optimizers = [s.optimizer for s in schedulers]
-        tmp_list_param_optimizers = [s if isinstance(s, list) else [s] for s in tmp_param_optimizers]
+        tmp_list_param_optimizers = [
+            s if isinstance(s, list) else [s] for s in tmp_param_optimizers
+        ]
         param_optimizers = list(itertools.chain(*tmp_list_param_optimizers))
 
         tmp_optimizer = list(set(param_optimizers))
@@ -614,7 +678,9 @@ class ConcatScheduler(ParamScheduler):
         # not perturb original scheduler.
         with tempfile.TemporaryDirectory() as tmpdirname:
             cache_filepath = Path(tmpdirname) / "ignite_lr_scheduler_cache.pt"
-            objs = {f"lr_scheduler_{i}": s.state_dict() for i, s in enumerate(schedulers)}
+            objs = {
+                f"lr_scheduler_{i}": s.state_dict() for i, s in enumerate(schedulers)
+            }
             # all schedulers should be related to the same optimizer
             objs["optimizer"] = optimizer.state_dict()
 
@@ -625,7 +691,9 @@ class ConcatScheduler(ParamScheduler):
                 s.save_history = False
 
             output = []
-            scheduler = cls(schedulers=schedulers, save_history=False, durations=durations)
+            scheduler = cls(
+                schedulers=schedulers, save_history=False, durations=durations
+            )
             if param_names is None:
                 param_names = [scheduler.param_name]
             for i in range(num_events):
@@ -689,8 +757,7 @@ class LRScheduler(ParamScheduler):
         super(LRScheduler, self).__call__(engine, name)
 
     def get_param(self) -> Union[float, List[float]]:
-        """Method to get current optimizer's parameter value
-        """
+        """Method to get current optimizer's parameter value"""
         # Emulate context manager for pytorch>=1.4
         self.lr_scheduler._get_lr_called_within_step = True  # type: ignore[attr-defined]
         lr_list = cast(List[float], self.lr_scheduler.get_lr())
@@ -735,7 +802,9 @@ class LRScheduler(ParamScheduler):
             values = []
             scheduler = cls(save_history=False, lr_scheduler=lr_scheduler, **kwargs)  # type: ignore[call-arg]
             for i in range(num_events):
-                params = [p[scheduler.param_name] for p in scheduler.optimizer_param_groups]
+                params = [
+                    p[scheduler.param_name] for p in scheduler.optimizer_param_groups
+                ]
                 values.append([i] + params)
                 scheduler(engine=None)
 
@@ -804,21 +873,30 @@ def create_lr_scheduler_with_warmup(
         )
 
     if not isinstance(warmup_duration, numbers.Integral):
-        raise TypeError(f"Argument warmup_duration should be integer, but given {warmup_duration}")
+        raise TypeError(
+            f"Argument warmup_duration should be integer, but given {warmup_duration}"
+        )
 
     if not (warmup_duration > 1):
-        raise ValueError(f"Argument warmup_duration should be at least 2 events, but given {warmup_duration}")
+        raise ValueError(
+            f"Argument warmup_duration should be at least 2 events, but given {warmup_duration}"
+        )
 
     warmup_schedulers = []  # type: List[ParamScheduler]
 
-    for param_group_index, param_group in enumerate(lr_scheduler.optimizer.param_groups):
+    for param_group_index, param_group in enumerate(
+        lr_scheduler.optimizer.param_groups
+    ):
 
         if warmup_end_value is None:
             param_group_warmup_end_value = param_group["lr"]
         else:
             param_group_warmup_end_value = warmup_end_value
 
-        milestones_values = [(0, warmup_start_value), (warmup_duration - 1, param_group_warmup_end_value)]
+        milestones_values = [
+            (0, warmup_start_value),
+            (warmup_duration - 1, param_group_warmup_end_value),
+        ]
 
         if isinstance(lr_scheduler, _LRScheduler):
             init_lr = param_group["lr"]
@@ -831,8 +909,13 @@ def create_lr_scheduler_with_warmup(
             init_lr = lr_scheduler.get_param()
             if init_lr == param_group_warmup_end_value:
                 if warmup_duration > 2:
-                    d = (param_group_warmup_end_value - warmup_start_value) / (warmup_duration - 1)
-                    milestones_values[-1] = (warmup_duration - 2, param_group_warmup_end_value - d)
+                    d = (param_group_warmup_end_value - warmup_start_value) / (
+                        warmup_duration - 1
+                    )
+                    milestones_values[-1] = (
+                        warmup_duration - 2,
+                        param_group_warmup_end_value - d,
+                    )
                 else:
                     milestones_values.pop(-1)
 
@@ -853,7 +936,9 @@ def create_lr_scheduler_with_warmup(
         lr_scheduler,
     ]  # type: List[Union[ParamScheduler, ParamGroupScheduler, _LRScheduler]]
     durations = [milestones_values[-1][0] + 1]
-    combined_scheduler = ConcatScheduler(schedulers, durations=durations, save_history=save_history)
+    combined_scheduler = ConcatScheduler(
+        schedulers, durations=durations, save_history=save_history
+    )
 
     if output_simulated_values is not None:
         if not isinstance(output_simulated_values, list):
@@ -862,7 +947,9 @@ def create_lr_scheduler_with_warmup(
                 f"but given {type(output_simulated_values)}."
             )
         num_events = len(output_simulated_values)
-        result = ConcatScheduler.simulate_values(num_events=num_events, schedulers=schedulers, durations=durations)
+        result = ConcatScheduler.simulate_values(
+            num_events=num_events, schedulers=schedulers, durations=durations
+        )
         for i in range(num_events):
             output_simulated_values[i] = result[i]
     return combined_scheduler
@@ -903,7 +990,9 @@ class PiecewiseLinear(ParamScheduler):
         save_history: bool = False,
         param_group_index: Optional[int] = None,
     ):
-        super(PiecewiseLinear, self).__init__(optimizer, param_name, save_history, param_group_index=param_group_index)
+        super(PiecewiseLinear, self).__init__(
+            optimizer, param_name, save_history, param_group_index=param_group_index
+        )
 
         if not isinstance(milestones_values, Sequence):
             raise TypeError(
@@ -918,9 +1007,13 @@ class PiecewiseLinear(ParamScheduler):
         milestones = []  # type: List[int]
         for pair in milestones_values:
             if not isinstance(pair, tuple) or len(pair) != 2:
-                raise ValueError("Argument milestones_values should be a list of pairs (milestone, param_value)")
+                raise ValueError(
+                    "Argument milestones_values should be a list of pairs (milestone, param_value)"
+                )
             if not isinstance(pair[0], numbers.Integral):
-                raise TypeError(f"Value of a milestone should be integer, but given {type(pair[0])}")
+                raise TypeError(
+                    f"Value of a milestone should be integer, but given {type(pair[0])}"
+                )
             if len(milestones) > 0 and pair[0] < milestones[-1]:
                 raise ValueError(
                     f"Milestones should be increasing integers, but given {pair[0]} is smaller "
@@ -936,10 +1029,24 @@ class PiecewiseLinear(ParamScheduler):
 
     def _get_start_end(self) -> Tuple[int, int, float, float]:
         if self.milestones[0] > self.event_index:
-            return self.event_index - 1, self.event_index, self.values[0], self.values[0]
+            return (
+                self.event_index - 1,
+                self.event_index,
+                self.values[0],
+                self.values[0],
+            )
         elif self.milestones[-1] <= self.event_index:
-            return (self.event_index, self.event_index + 1, self.values[-1], self.values[-1])
-        elif self.milestones[self._index] <= self.event_index < self.milestones[self._index + 1]:
+            return (
+                self.event_index,
+                self.event_index + 1,
+                self.values[-1],
+                self.values[-1],
+            )
+        elif (
+            self.milestones[self._index]
+            <= self.event_index
+            < self.milestones[self._index + 1]
+        ):
             return (
                 self.milestones[self._index],
                 self.milestones[self._index + 1],
@@ -952,7 +1059,9 @@ class PiecewiseLinear(ParamScheduler):
 
     def get_param(self) -> float:
         start_index, end_index, start_value, end_value = self._get_start_end()
-        return start_value + (end_value - start_value) * (self.event_index - start_index) / (end_index - start_index)
+        return start_value + (end_value - start_value) * (
+            self.event_index - start_index
+        ) / (end_index - start_index)
 
 
 class ParamGroupScheduler:
@@ -984,9 +1093,16 @@ class ParamGroupScheduler:
 
     """
 
-    def __init__(self, schedulers: List[ParamScheduler], names: Optional[List[str]] = None, save_history: bool = False):
+    def __init__(
+        self,
+        schedulers: List[ParamScheduler],
+        names: Optional[List[str]] = None,
+        save_history: bool = False,
+    ):
         if not isinstance(schedulers, Sequence):
-            raise TypeError(f"Argument schedulers should be a list/tuple, but given {schedulers}")
+            raise TypeError(
+                f"Argument schedulers should be a list/tuple, but given {schedulers}"
+            )
 
         if not all(isinstance(scheduler, ParamScheduler) for scheduler in schedulers):
             raise ValueError(
@@ -1000,7 +1116,9 @@ class ParamGroupScheduler:
             raise TypeError(f"Argument names should be a list/tuple, but given {names}")
 
         if not all(isinstance(n, str) for n in names):
-            raise ValueError(f"Argument names should be a list/tuple of parameter scheduler's names, but given {names}")
+            raise ValueError(
+                f"Argument names should be a list/tuple of parameter scheduler's names, but given {names}"
+            )
 
         if len(names) != len(schedulers):
             raise ValueError(f"{len(schedulers)} should be equal {len(names)}")
@@ -1021,7 +1139,11 @@ class ParamGroupScheduler:
 
     @property
     def optimizer_param_groups(self) -> List[Dict[str, Any]]:
-        return [pg for scheduler in self.schedulers for pg in scheduler.optimizer_param_groups]
+        return [
+            pg
+            for scheduler in self.schedulers
+            for pg in scheduler.optimizer_param_groups
+        ]
 
     @property
     def save_history(self) -> bool:
@@ -1052,7 +1174,9 @@ class ParamGroupScheduler:
             state_dict: a dict containing parameters.
         """
         if not isinstance(state_dict, Mapping):
-            raise TypeError(f"Argument state_dict should be a dictionary, but given {type(state_dict)}")
+            raise TypeError(
+                f"Argument state_dict should be a dictionary, but given {type(state_dict)}"
+            )
 
         if "schedulers" not in state_dict:
             raise ValueError(
@@ -1073,7 +1197,9 @@ class ParamGroupScheduler:
             s.load_state_dict(sd)
 
     @classmethod
-    def simulate_values(cls, num_events: int, schedulers: List[_LRScheduler], **kwargs: Any) -> List[List[int]]:
+    def simulate_values(
+        cls, num_events: int, schedulers: List[_LRScheduler], **kwargs: Any
+    ) -> List[List[int]]:
         """Method to simulate scheduled values during num_events events.
 
         Args:
@@ -1092,7 +1218,9 @@ class ParamGroupScheduler:
         # not perturb original scheduler.
         with tempfile.TemporaryDirectory() as tmpdirname:
             cache_filepath = Path(tmpdirname) / "ignite_lr_scheduler_cache.pt"
-            objs = {f"lr_scheduler_{i}": s.state_dict() for i, s in enumerate(schedulers)}
+            objs = {
+                f"lr_scheduler_{i}": s.state_dict() for i, s in enumerate(schedulers)
+            }
             # all schedulers should be related to the same optimizer
             objs["optimizer"] = schedulers[0].optimizer.state_dict()  # type: ignore[attr-defined]
 
@@ -1114,7 +1242,8 @@ class ParamGroupScheduler:
 
 
 def _get_fake_optimizer(
-    optimizer_cls: Optional[Union[Type[Optimizer], Type[torch.optim.SGD]]] = None, **kwargs: Any
+    optimizer_cls: Optional[Union[Type[Optimizer], Type[torch.optim.SGD]]] = None,
+    **kwargs: Any,
 ) -> Union[Optimizer, torch.optim.SGD]:
     t = torch.zeros([1], requires_grad=True)
     if optimizer_cls is None:

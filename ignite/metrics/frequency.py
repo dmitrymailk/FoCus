@@ -38,9 +38,13 @@ class Frequency(Metric):
     """
 
     def __init__(
-        self, output_transform: Callable = lambda x: x, device: Union[str, torch.device] = torch.device("cpu")
+        self,
+        output_transform: Callable = lambda x: x,
+        device: Union[str, torch.device] = torch.device("cpu"),
     ) -> None:
-        super(Frequency, self).__init__(output_transform=output_transform, device=device)
+        super(Frequency, self).__init__(
+            output_transform=output_transform, device=device
+        )
 
     @reinit__is_reduced
     def reset(self) -> None:

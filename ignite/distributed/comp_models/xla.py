@@ -38,15 +38,18 @@ if has_xla_support:
             return _XlaDistModel()
 
         @staticmethod
-        def create_from_backend(backend: str = XLA_TPU, **kwargs: Any) -> "_XlaDistModel":
+        def create_from_backend(
+            backend: str = XLA_TPU, **kwargs: Any
+        ) -> "_XlaDistModel":
             if backend not in _XlaDistModel.available_backends:
-                raise ValueError(f"Backend should be one of '{_XlaDistModel.available_backends}'")
+                raise ValueError(
+                    f"Backend should be one of '{_XlaDistModel.available_backends}'"
+                )
 
             return _XlaDistModel(backend=backend, **kwargs)
 
         def __init__(self, backend: Optional[str] = None, **kwargs: Any):
-            """This is a private method. Please, use `create_from_backend` or `create_from_context`
-            """
+            """This is a private method. Please, use `create_from_backend` or `create_from_context`"""
             super(_XlaDistModel, self).__init__()
             if backend is not None:
                 self._create_from_backend(backend, **kwargs)
@@ -64,8 +67,15 @@ if has_xla_support:
             self._setup_attrs()
 
         def _compute_nproc_per_node(self) -> int:
-            tensor = torch.tensor([self.get_local_rank() + 1.0], dtype=torch.float).to(self.device())
-            xm.all_reduce("max", [tensor,])
+            tensor = torch.tensor([self.get_local_rank() + 1.0], dtype=torch.float).to(
+                self.device()
+            )
+            xm.all_reduce(
+                "max",
+                [
+                    tensor,
+                ],
+            )
             return int(tensor.item())
 
         def get_local_rank(self) -> int:
@@ -98,7 +108,11 @@ if has_xla_support:
 
         @staticmethod
         def _dist_worker_task_fn(
-            local_rank: int, backend: str, fn: Callable, args: Tuple, kwargs_dict: Mapping
+            local_rank: int,
+            backend: str,
+            fn: Callable,
+            args: Tuple,
+            kwargs_dict: Mapping,
         ) -> None:
             from ignite.distributed.utils import _set_model, finalize
 
@@ -142,22 +156,39 @@ if has_xla_support:
             if op not in self._reduce_op_map:
                 raise ValueError(f"Unsupported reduction operation: '{op}'")
             op = self._reduce_op_map[op]
-            xm.all_reduce(op, [tensor,])
+            xm.all_reduce(
+                op,
+                [
+                    tensor,
+                ],
+            )
             return tensor
 
         def _do_all_gather(self, tensor: torch.Tensor) -> torch.Tensor:
             # from https://github.com/jysohn23/xla/blob/model-parallel-colab/Gather_Scatter_Broadcast_PyTorch_XLA.ipynb
             group_size = self.get_world_size()
-            output = torch.zeros((group_size,) + tensor.shape, dtype=tensor.dtype, device=tensor.device)
+            output = torch.zeros(
+                (group_size,) + tensor.shape, dtype=tensor.dtype, device=tensor.device
+            )
             output[self.get_rank() % group_size] = tensor
-            xm.all_reduce("sum", [output,])
+            xm.all_reduce(
+                "sum",
+                [
+                    output,
+                ],
+            )
             return output.reshape(-1, *output.shape[2:])
 
         def _do_broadcast(self, tensor: torch.Tensor, src: int) -> torch.Tensor:
             # from https://github.com/jysohn23/xla/blob/model-parallel-colab/Gather_Scatter_Broadcast_PyTorch_XLA.ipynb
             if src != self.get_rank():
                 tensor.fill_(0.0)
-            xm.all_reduce("sum", [tensor,])
+            xm.all_reduce(
+                "sum",
+                [
+                    tensor,
+                ],
+            )
             return tensor
 
         def barrier(self) -> None:
