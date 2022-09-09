@@ -29,6 +29,8 @@ from transformers import AdamW, WEIGHTS_NAME, CONFIG_NAME
 from utils_focus import make_focus_logdir
 from data_utils import get_data_loaders, add_special_tokens_
 
+import wandb
+
 logger = logging.getLogger(__file__)
 
 
@@ -159,6 +161,9 @@ def train():
     parser.add_argument(
         "--flag", type=str, default="", help="Assign the name of the folder"
     )
+    parser.add_argument(
+        "--debug", type=bool, default="", help="Assign the name of the folder"
+    )
     parser.add_argument("--seed", type=int, default=19950604)
     parser.add_argument(
         "--random_knowledge",
@@ -171,6 +176,8 @@ def train():
         help="If true, it will use incontext structure",
     )
     args = parser.parse_args()
+    # add wandb hyperparams
+    wandb.config = args
     torch.manual_seed(args.seed)
 
     logging.basicConfig(
@@ -651,4 +658,6 @@ def train():
 
 
 if __name__ == "__main__":
+    # wandb.init(project="focus", entity="dimweb")
     train()
+    # wandb.finish()

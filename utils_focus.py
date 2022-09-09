@@ -14,6 +14,7 @@ def get_dataset_only_train_dev(
     train_dataset_cache,
     dev_dataset_path,
     dev_dataset_cache,
+    debug=False,
 ):
     def tokenize(obj):
         if isinstance(obj, str):
@@ -45,6 +46,8 @@ def get_dataset_only_train_dev(
                 dataset = json.loads(f.read())
                 dataset_enc = dict()
                 dataset_enc[name] = list()
+                if debug:
+                    dataset["data"] = dataset["data"][:10]
                 for dialogue in dataset["data"]:
                     ID = dialogue["dialogID"]
                     persona = dialogue["persona"]

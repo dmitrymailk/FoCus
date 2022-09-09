@@ -644,6 +644,7 @@ def get_data_loaders(args, tokenizer, generation=False):
         args.train_dataset_cache,
         args.dev_dataset_path,
         args.dev_dataset_cache,
+        args.debug,
     )
 
     model_name = args.model_name
@@ -657,6 +658,8 @@ def get_data_loaders(args, tokenizer, generation=False):
             testset = True
         else:
             testset = False
+        if args.debug:
+            dataset = dataset[:10]
         for dialog in dataset:
             ID = dialog["dialogID"]
             persona = dialog["persona"]
