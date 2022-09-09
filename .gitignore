@@ -4,3 +4,4 @@ data
 models
 wandb
 temp.py
+train_log_focus

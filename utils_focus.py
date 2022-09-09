@@ -14,7 +14,7 @@ def get_dataset_only_train_dev(
     train_dataset_cache,
     dev_dataset_path,
     dev_dataset_cache,
-    debug=False,
+    debug,
 ):
     def tokenize(obj):
         if isinstance(obj, str):

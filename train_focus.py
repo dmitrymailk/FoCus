@@ -169,16 +169,8 @@ def train():
     parser.add_argument(
         "--flag", type=str, default="", help="Assign the name of the folder"
     )
-    parser.add_argument(
-        "--debug",
-        type=bool,
-        default=False,
-    )
-    parser.add_argument(
-        "--wandb",
-        type=bool,
-        default=False,
-    )
+    parser.add_argument("--debug", default=False, action="store_true")
+    parser.add_argument("--wandb", default=False, action="store_true")
     parser.add_argument("--seed", type=int, default=19950604)
     parser.add_argument(
         "--random_knowledge",
@@ -193,6 +185,7 @@ def train():
     args = parser.parse_args()
     # add wandb
     print("WANDB: ", args.wandb)
+    print("DEBUG: ", args.debug)
     if args.wandb:
         wandb.init(project="focus", entity="dimweb")
         print(args)
@@ -592,24 +585,25 @@ def train():
     for name, metric in metrics.items():
         metric.attach(evaluator, name)
 
-    @trainer.on(Events.ITERATION_COMPLETED)
-    def train_log():
-        train_metrics = [
-            "lm_loss",
-            "knowledge_loss",
-            "persona_loss",
-        ]
-        wandb_log_metrics(
-            metrics_names=train_metrics, trainer=trainer, trainer_type="train"
-        )
+    if args.wandb:
 
-    @evaluator.on(Events.EPOCH_COMPLETED)
-    def validation_log():
-        valid_metrics = metrics.keys()
-        wandb_log_metrics(
-            metrics_names=valid_metrics, trainer=evaluator, trainer_type="valid"
-        )
-        # print(evaluator.state.metrics.keys())
+        @trainer.on(Events.ITERATION_COMPLETED)
+        def train_log():
+            train_metrics = [
+                "lm_loss",
+                "knowledge_loss",
+                "persona_loss",
+            ]
+            wandb_log_metrics(
+                metrics_names=train_metrics, trainer=trainer, trainer_type="train"
+            )
+
+        @evaluator.on(Events.EPOCH_COMPLETED)
+        def validation_log():
+            valid_metrics = metrics.keys()
+            wandb_log_metrics(
+                metrics_names=valid_metrics, trainer=evaluator, trainer_type="valid"
+            )
 
     # On the main process: add progress bar, tensorboard, checkpoints and save model, configuration and tokenizer before we start to train
     if args.local_rank in [-1, 0]:
