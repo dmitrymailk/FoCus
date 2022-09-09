@@ -34,6 +34,14 @@ import wandb
 logger = logging.getLogger(__file__)
 
 
+def wandb_log_metrics(
+    metrics_names: list[str] = None, trainer: Engine = None, trainer_type: str = None
+):
+    for name in metrics_names:
+        wandb_metric_name = f"{trainer_type}_{name}"
+        wandb.log({wandb_metric_name: trainer.state.metrics[name]})
+
+
 def average_distributed_scalar(scalar, args):
     """Average a scalar over the nodes if we are in distributed training. We use this for distributed evaluation."""
     if args.local_rank == -1:
@@ -162,7 +170,14 @@ def train():
         "--flag", type=str, default="", help="Assign the name of the folder"
     )
     parser.add_argument(
-        "--debug", type=bool, default="", help="Assign the name of the folder"
+        "--debug",
+        type=bool,
+        default=False,
+    )
+    parser.add_argument(
+        "--wandb",
+        type=bool,
+        default=False,
     )
     parser.add_argument("--seed", type=int, default=19950604)
     parser.add_argument(
@@ -176,8 +191,15 @@ def train():
         help="If true, it will use incontext structure",
     )
     args = parser.parse_args()
-    # add wandb hyperparams
-    wandb.config = args
+    # add wandb
+    print("WANDB: ", args.wandb)
+    if args.wandb:
+        wandb.init(project="focus", entity="dimweb")
+        print(args)
+        wandb.config.update(vars(args))
+        wandb_run_name = f"{args.model_name}_{args.flag}"
+        wandb.run.name = wandb_run_name
+
     torch.manual_seed(args.seed)
 
     logging.basicConfig(
@@ -570,6 +592,25 @@ def train():
     for name, metric in metrics.items():
         metric.attach(evaluator, name)
 
+    @trainer.on(Events.ITERATION_COMPLETED)
+    def train_log():
+        train_metrics = [
+            "lm_loss",
+            "knowledge_loss",
+            "persona_loss",
+        ]
+        wandb_log_metrics(
+            metrics_names=train_metrics, trainer=trainer, trainer_type="train"
+        )
+
+    @evaluator.on(Events.EPOCH_COMPLETED)
+    def validation_log():
+        valid_metrics = metrics.keys()
+        wandb_log_metrics(
+            metrics_names=valid_metrics, trainer=evaluator, trainer_type="valid"
+        )
+        # print(evaluator.state.metrics.keys())
+
     # On the main process: add progress bar, tensorboard, checkpoints and save model, configuration and tokenizer before we start to train
     if args.local_rank in [-1, 0]:
         pbar = ProgressBar(persist=True)
@@ -655,9 +696,9 @@ def train():
             os.path.join(log_dir, WEIGHTS_NAME),
         )
         tb_logger.close()
+    if args.wandb:
+        wandb.finish()
 
 
 if __name__ == "__main__":
-    # wandb.init(project="focus", entity="dimweb")
     train()
-    # wandb.finish()

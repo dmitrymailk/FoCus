@@ -1,6 +1,13 @@
-INFO:/home/dimweb/Desktop/deeppavlov/FoCus/train_focus.py:Arguments: Namespace(model_name='BART', gpt2_model_path='gpt2', bart_model_path='facebook/bart-base', train_dataset_path='data/train_focus.json', train_dataset_cache='data/focus_cache.tar.gz', dev_dataset_path='data/valid_focus.json', dev_dataset_cache='data/focus_cache.tar.gz', ps_coef=1.0, kn_coef=1.0, lm_coef=10.0, max_history=1, train_batch_size=2, valid_batch_size=1, gradient_accumulation_steps=16, lr=6.25e-05, max_norm=1.0, n_epochs=2, eval_before_start=False, inference=False, test_infer=False, device='cuda', fp16='', local_rank=-1, gpu_start_num=1, flag='E2_L10', debug=True, seed=19950604, random_knowledge=False, incontext=True)
+wandb: Currently logged in as: dimweb. Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.13.3
+wandb: Run data is saved locally in /home/dimweb/Desktop/deeppavlov/FoCus/wandb/run-20220909_144117-uktb7er4
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run worldly-mountain-15
+wandb: ⭐️ View project at https://wandb.ai/dimweb/focus
+wandb: 🚀 View run at https://wandb.ai/dimweb/focus/runs/uktb7er4
+INFO:/home/dimweb/Desktop/deeppavlov/FoCus/train_focus.py:Arguments: Namespace(model_name='BART', gpt2_model_path='gpt2', bart_model_path='facebook/bart-base', train_dataset_path='data/train_focus.json', train_dataset_cache='data/focus_cache.tar.gz', dev_dataset_path='data/valid_focus.json', dev_dataset_cache='data/focus_cache.tar.gz', ps_coef=1.0, kn_coef=1.0, lm_coef=10.0, max_history=1, train_batch_size=2, valid_batch_size=1, gradient_accumulation_steps=16, lr=6.25e-05, max_norm=1.0, n_epochs=2, eval_before_start=False, inference=False, test_infer=False, device='cuda', fp16='', local_rank=-1, gpu_start_num=1, flag='E2_L10', debug=True, wandb=True, seed=19950604, random_knowledge=False, incontext=True)
 INFO:/home/dimweb/Desktop/deeppavlov/FoCus/train_focus.py:Prepare tokenizer, pretrained model and optimizer.
-Some weights of BARTPK_ctxt were not initialized from the model checkpoint at facebook/bart-base and are newly initialized: ['attn1.weight', 'concat_summary.summary.weight', 'final_logits_bias', 'summary.summary.bias', 'attn2.bias', 'attn1.bias', 'summary.summary.weight', 'concat_summary.summary.bias', 'attn2.weight']
+Some weights of BARTPK_ctxt were not initialized from the model checkpoint at facebook/bart-base and are newly initialized: ['attn2.weight', 'final_logits_bias', 'concat_summary.summary.weight', 'attn1.bias', 'attn2.bias', 'attn1.weight', 'concat_summary.summary.bias', 'summary.summary.weight', 'summary.summary.bias']
 You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
 /home/dimweb/Desktop/deeppavlov/d_env/lib/python3.10/site-packages/transformers/optimization.py:306: FutureWarning: This implementation of AdamW is deprecated and will be removed in a future version. Use the PyTorch implementation torch.optim.AdamW instead, or set `no_deprecation_warning=True` to disable this warning
   warnings.warn(
@@ -12,106 +19,17 @@ INFO:/home/dimweb/Desktop/deeppavlov/FoCus/data_utils.py:Build train and validat
 INFO:/home/dimweb/Desktop/deeppavlov/FoCus/data_utils.py:Train dataset (Batch, Candidates, Seq length): torch.Size([57, 70])
 INFO:/home/dimweb/Desktop/deeppavlov/FoCus/data_utils.py:Valid dataset (Batch, Candidates, Seq length): torch.Size([54, 79])
 INFO:ignite.engine.engine.Engine:Engine run starting with max_epochs=2.
+WANDB:  True
+Namespace(model_name='BART', gpt2_model_path='gpt2', bart_model_path='facebook/bart-base', train_dataset_path='data/train_focus.json', train_dataset_cache='data/focus_cache.tar.gz', dev_dataset_path='data/valid_focus.json', dev_dataset_cache='data/focus_cache.tar.gz', ps_coef=1.0, kn_coef=1.0, lm_coef=10.0, max_history=1, train_batch_size=2, valid_batch_size=1, gradient_accumulation_steps=16, lr=6.25e-05, max_norm=1.0, n_epochs=2, eval_before_start=False, inference=False, test_infer=False, device='cuda', fp16='', local_rank=-1, gpu_start_num=1, flag='E2_L10', debug=True, wandb=True, seed=19950604, random_knowledge=False, incontext=True)
 orig num 50265 num_added 4
 train 100
 valid 100
 remove list:  0
 remove list:  0
-
-[1/29]   3%|▎          [00:00<?]
-Epoch [1/2]: [1/29]   3%|▎          [00:00<?]
-Epoch [1/2]: [1/29]   3%|▎         , lm_loss=4.69 [00:00<?]
-Epoch [1/2]: [1/29]   3%|▎         , lm_loss=4.69 [00:00<?]
-Epoch [1/2]: [1/29]   3%|▎         , lm_loss=4.74 [00:00<?]
-Epoch [1/2]: [2/29]   7%|▋         , lm_loss=4.74 [00:00<00:14]
-Epoch [1/2]: [2/29]   7%|▋         , lm_loss=4.74 [00:01<00:14]
-Epoch [1/2]: [2/29]   7%|▋         , lm_loss=4.8 [00:01<00:14] 
-Epoch [1/2]: [3/29]  10%|█         , lm_loss=4.8 [00:01<00:13]
-Epoch [1/2]: [3/29]  10%|█         , lm_loss=4.8 [00:01<00:13]
-Epoch [1/2]: [3/29]  10%|█         , lm_loss=4.88 [00:01<00:13]
-Epoch [1/2]: [4/29]  14%|█▍        , lm_loss=4.88 [00:01<00:13]
-Epoch [1/2]: [4/29]  14%|█▍        , lm_loss=4.88 [00:02<00:13]
-Epoch [1/2]: [4/29]  14%|█▍        , lm_loss=4.97 [00:02<00:13]
-Epoch [1/2]: [5/29]  17%|█▋        , lm_loss=4.97 [00:02<00:12]
-Epoch [1/2]: [5/29]  17%|█▋        , lm_loss=4.97 [00:02<00:12]
-Epoch [1/2]: [5/29]  17%|█▋        , lm_loss=5.02 [00:02<00:12]
-Epoch [1/2]: [6/29]  21%|██        , lm_loss=5.02 [00:02<00:11]
-Epoch [1/2]: [6/29]  21%|██        , lm_loss=5.02 [00:03<00:11]
-Epoch [1/2]: [6/29]  21%|██        , lm_loss=5.05 [00:03<00:11]
-Epoch [1/2]: [7/29]  24%|██▍       , lm_loss=5.05 [00:03<00:11]
-Epoch [1/2]: [7/29]  24%|██▍       , lm_loss=5.05 [00:03<00:11]
-Epoch [1/2]: [7/29]  24%|██▍       , lm_loss=5.09 [00:03<00:11]
-Epoch [1/2]: [8/29]  28%|██▊       , lm_loss=5.09 [00:03<00:10]
-Epoch [1/2]: [8/29]  28%|██▊       , lm_loss=5.09 [00:04<00:10]
-Epoch [1/2]: [8/29]  28%|██▊       , lm_loss=5.16 [00:04<00:10]
-Epoch [1/2]: [9/29]  31%|███       , lm_loss=5.16 [00:04<00:10]
-Epoch [1/2]: [9/29]  31%|███       , lm_loss=5.16 [00:04<00:10]
-Epoch [1/2]: [9/29]  31%|███       , lm_loss=5.22 [00:04<00:10]
-Epoch [1/2]: [10/29]  34%|███▍      , lm_loss=5.22 [00:04<00:09]
-Epoch [1/2]: [10/29]  34%|███▍      , lm_loss=5.22 [00:05<00:09]
-Epoch [1/2]: [10/29]  34%|███▍      , lm_loss=5.24 [00:05<00:09]
-Epoch [1/2]: [11/29]  38%|███▊      , lm_loss=5.24 [00:05<00:09]
-Epoch [1/2]: [11/29]  38%|███▊      , lm_loss=5.24 [00:05<00:09]
-Epoch [1/2]: [11/29]  38%|███▊      , lm_loss=5.23 [00:05<00:09]
-Epoch [1/2]: [12/29]  41%|████▏     , lm_loss=5.23 [00:05<00:08]
-Epoch [1/2]: [12/29]  41%|████▏     , lm_loss=5.23 [00:06<00:08]
-Epoch [1/2]: [12/29]  41%|████▏     , lm_loss=5.28 [00:06<00:08]
-Epoch [1/2]: [13/29]  45%|████▍     , lm_loss=5.28 [00:06<00:08]
-Epoch [1/2]: [13/29]  45%|████▍     , lm_loss=5.28 [00:06<00:08]
-Epoch [1/2]: [13/29]  45%|████▍     , lm_loss=5.3 [00:06<00:08] 
-Epoch [1/2]: [14/29]  48%|████▊     , lm_loss=5.3 [00:06<00:07]
-Epoch [1/2]: [14/29]  48%|████▊     , lm_loss=5.3 [00:07<00:07]
-Epoch [1/2]: [14/29]  48%|████▊     , lm_loss=5.33 [00:07<00:07]
-Epoch [1/2]: [15/29]  52%|█████▏    , lm_loss=5.33 [00:07<00:07]
-Epoch [1/2]: [15/29]  52%|█████▏    , lm_loss=5.33 [00:07<00:07]
-Epoch [1/2]: [15/29]  52%|█████▏    , lm_loss=5.35 [00:07<00:07]
-Epoch [1/2]: [16/29]  55%|█████▌    , lm_loss=5.35 [00:07<00:06]
-Epoch [1/2]: [16/29]  55%|█████▌    , lm_loss=5.35 [00:08<00:06]
-Epoch [1/2]: [16/29]  55%|█████▌    , lm_loss=5.34 [00:08<00:06]
-Epoch [1/2]: [17/29]  59%|█████▊    , lm_loss=5.34 [00:08<00:06]
-Epoch [1/2]: [17/29]  59%|█████▊    , lm_loss=5.34 [00:08<00:06]
-Epoch [1/2]: [17/29]  59%|█████▊    , lm_loss=5.36 [00:08<00:06]
-Epoch [1/2]: [18/29]  62%|██████▏   , lm_loss=5.36 [00:08<00:05]
-Epoch [1/2]: [18/29]  62%|██████▏   , lm_loss=5.36 [00:09<00:05]
-Epoch [1/2]: [18/29]  62%|██████▏   , lm_loss=5.36 [00:09<00:05]
-Epoch [1/2]: [19/29]  66%|██████▌   , lm_loss=5.36 [00:09<00:05]
-Epoch [1/2]: [19/29]  66%|██████▌   , lm_loss=5.36 [00:09<00:05]
-Epoch [1/2]: [19/29]  66%|██████▌   , lm_loss=5.36 [00:09<00:05]
-Epoch [1/2]: [20/29]  69%|██████▉   , lm_loss=5.36 [00:09<00:04]
-Epoch [1/2]: [20/29]  69%|██████▉   , lm_loss=5.36 [00:10<00:04]
-Epoch [1/2]: [20/29]  69%|██████▉   , lm_loss=5.34 [00:10<00:04]
-Epoch [1/2]: [21/29]  72%|███████▏  , lm_loss=5.34 [00:10<00:04]
-Epoch [1/2]: [21/29]  72%|███████▏  , lm_loss=5.34 [00:11<00:04]
-Epoch [1/2]: [21/29]  72%|███████▏  , lm_loss=5.33 [00:11<00:04]
-Epoch [1/2]: [22/29]  76%|███████▌  , lm_loss=5.33 [00:11<00:03]
-Epoch [1/2]: [22/29]  76%|███████▌  , lm_loss=5.33 [00:11<00:03]
-Epoch [1/2]: [22/29]  76%|███████▌  , lm_loss=5.34 [00:11<00:03]
-Epoch [1/2]: [23/29]  79%|███████▉  , lm_loss=5.34 [00:11<00:03]
-Epoch [1/2]: [23/29]  79%|███████▉  , lm_loss=5.34 [00:12<00:03]
-Epoch [1/2]: [23/29]  79%|███████▉  , lm_loss=5.35 [00:12<00:03]
-Epoch [1/2]: [24/29]  83%|████████▎ , lm_loss=5.35 [00:12<00:02]
-Epoch [1/2]: [24/29]  83%|████████▎ , lm_loss=5.35 [00:12<00:02]
-Epoch [1/2]: [24/29]  83%|████████▎ , lm_loss=5.33 [00:12<00:02]
-Epoch [1/2]: [25/29]  86%|████████▌ , lm_loss=5.33 [00:12<00:02]
-Epoch [1/2]: [25/29]  86%|████████▌ , lm_loss=5.33 [00:13<00:02]
-Epoch [1/2]: [25/29]  86%|████████▌ , lm_loss=5.34 [00:13<00:02]
-Epoch [1/2]: [26/29]  90%|████████▉ , lm_loss=5.34 [00:13<00:01]
-Epoch [1/2]: [26/29]  90%|████████▉ , lm_loss=5.34 [00:13<00:01]
-Epoch [1/2]: [26/29]  90%|████████▉ , lm_loss=5.41 [00:13<00:01]
-Epoch [1/2]: [27/29]  93%|█████████▎, lm_loss=5.41 [00:13<00:01]
-Epoch [1/2]: [27/29]  93%|█████████▎, lm_loss=5.41 [00:14<00:01]
-Epoch [1/2]: [27/29]  93%|█████████▎, lm_loss=5.43 [00:14<00:01]
-Epoch [1/2]: [28/29]  97%|█████████▋, lm_loss=5.43 [00:14<00:00]
-Epoch [1/2]: [28/29]  97%|█████████▋, lm_loss=5.43 [00:14<00:00]
-Epoch [1/2]: [28/29]  97%|█████████▋, lm_loss=5.42 [00:14<00:00]
-Epoch [1/2]: [29/29] 100%|██████████, lm_loss=5.42 [00:14<00:00]INFO:ignite.engine.engine.Engine:Engine run starting with max_epochs=1.
+[1/29]   3%|▎          [00:00<?]Epoch [1/2]: [1/29]   3%|▎          [00:00<?]Epoch [1/2]: [1/29]   3%|▎         , lm_loss=4.69 [00:00<?]Epoch [1/2]: [1/29]   3%|▎         , lm_loss=4.69 [00:00<?]Epoch [1/2]: [1/29]   3%|▎         , lm_loss=4.74 [00:00<?]Epoch [1/2]: [2/29]   7%|▋         , lm_loss=4.74 [00:00<00:14]Epoch [1/2]: [2/29]   7%|▋         , lm_loss=4.74 [00:01<00:14]Epoch [1/2]: [2/29]   7%|▋         , lm_loss=4.8 [00:01<00:14] Epoch [1/2]: [3/29]  10%|█         , lm_loss=4.8 [00:01<00:13]Epoch [1/2]: [3/29]  10%|█         , lm_loss=4.8 [00:01<00:13]Epoch [1/2]: [3/29]  10%|█         , lm_loss=4.88 [00:01<00:13]Epoch [1/2]: [4/29]  14%|█▍        , lm_loss=4.88 [00:01<00:13]Epoch [1/2]: [4/29]  14%|█▍        , lm_loss=4.88 [00:02<00:13]Epoch [1/2]: [4/29]  14%|█▍        , lm_loss=4.97 [00:02<00:13]Epoch [1/2]: [5/29]  17%|█▋        , lm_loss=4.97 [00:02<00:12]Epoch [1/2]: [5/29]  17%|█▋        , lm_loss=4.97 [00:02<00:12]Epoch [1/2]: [5/29]  17%|█▋        , lm_loss=5.02 [00:02<00:12]Epoch [1/2]: [6/29]  21%|██        , lm_loss=5.02 [00:02<00:12]Epoch [1/2]: [6/29]  21%|██        , lm_loss=5.02 [00:03<00:12]Epoch [1/2]: [6/29]  21%|██        , lm_loss=5.05 [00:03<00:12]Epoch [1/2]: [7/29]  24%|██▍       , lm_loss=5.05 [00:03<00:11]Epoch [1/2]: [7/29]  24%|██▍       , lm_loss=5.05 [00:03<00:11]Epoch [1/2]: [7/29]  24%|██▍       , lm_loss=5.09 [00:03<00:11]Epoch [1/2]: [8/29]  28%|██▊       , lm_loss=5.09 [00:03<00:11]Epoch [1/2]: [8/29]  28%|██▊       , lm_loss=5.09 [00:04<00:11]Epoch [1/2]: [8/29]  28%|██▊       , lm_loss=5.16 [00:04<00:11]Epoch [1/2]: [9/29]  31%|███       , lm_loss=5.16 [00:04<00:10]Epoch [1/2]: [9/29]  31%|███       , lm_loss=5.16 [00:04<00:10]Epoch [1/2]: [9/29]  31%|███       , lm_loss=5.22 [00:04<00:10]Epoch [1/2]: [10/29]  34%|███▍      , lm_loss=5.22 [00:04<00:09]Epoch [1/2]: [10/29]  34%|███▍      , lm_loss=5.22 [00:05<00:09]Epoch [1/2]: [10/29]  34%|███▍      , lm_loss=5.24 [00:05<00:09]Epoch [1/2]: [11/29]  38%|███▊      , lm_loss=5.24 [00:05<00:09]Epoch [1/2]: [11/29]  38%|███▊      , lm_loss=5.24 [00:05<00:09]Epoch [1/2]: [11/29]  38%|███▊      , lm_loss=5.23 [00:05<00:09]Epoch [1/2]: [12/29]  41%|████▏     , lm_loss=5.23 [00:05<00:08]Epoch [1/2]: [12/29]  41%|████▏     , lm_loss=5.23 [00:06<00:08]Epoch [1/2]: [12/29]  41%|████▏     , lm_loss=5.28 [00:06<00:08]Epoch [1/2]: [13/29]  45%|████▍     , lm_loss=5.28 [00:06<00:08]Epoch [1/2]: [13/29]  45%|████▍     , lm_loss=5.28 [00:06<00:08]Epoch [1/2]: [13/29]  45%|████▍     , lm_loss=5.3 [00:06<00:08] Epoch [1/2]: [14/29]  48%|████▊     , lm_loss=5.3 [00:06<00:07]Epoch [1/2]: [14/29]  48%|████▊     , lm_loss=5.3 [00:07<00:07]Epoch [1/2]: [14/29]  48%|████▊     , lm_loss=5.33 [00:07<00:07]Epoch [1/2]: [15/29]  52%|█████▏    , lm_loss=5.33 [00:07<00:07]Epoch [1/2]: [15/29]  52%|█████▏    , lm_loss=5.33 [00:07<00:07]Epoch [1/2]: [15/29]  52%|█████▏    , lm_loss=5.35 [00:07<00:07]Epoch [1/2]: [16/29]  55%|█████▌    , lm_loss=5.35 [00:07<00:06]Epoch [1/2]: [16/29]  55%|█████▌    , lm_loss=5.35 [00:08<00:06]Epoch [1/2]: [16/29]  55%|█████▌    , lm_loss=5.34 [00:08<00:06]Epoch [1/2]: [17/29]  59%|█████▊    , lm_loss=5.34 [00:08<00:06]Epoch [1/2]: [17/29]  59%|█████▊    , lm_loss=5.34 [00:08<00:06]Epoch [1/2]: [17/29]  59%|█████▊    , lm_loss=5.36 [00:08<00:06]Epoch [1/2]: [18/29]  62%|██████▏   , lm_loss=5.36 [00:08<00:05]Epoch [1/2]: [18/29]  62%|██████▏   , lm_loss=5.36 [00:09<00:05]Epoch [1/2]: [18/29]  62%|██████▏   , lm_loss=5.36 [00:09<00:05]Epoch [1/2]: [19/29]  66%|██████▌   , lm_loss=5.36 [00:09<00:05]Epoch [1/2]: [19/29]  66%|██████▌   , lm_loss=5.36 [00:10<00:05]Epoch [1/2]: [19/29]  66%|██████▌   , lm_loss=5.36 [00:10<00:05]Epoch [1/2]: [20/29]  69%|██████▉   , lm_loss=5.36 [00:10<00:04]Epoch [1/2]: [20/29]  69%|██████▉   , lm_loss=5.36 [00:10<00:04]Epoch [1/2]: [20/29]  69%|██████▉   , lm_loss=5.34 [00:10<00:04]Epoch [1/2]: [21/29]  72%|███████▏  , lm_loss=5.34 [00:10<00:04]Epoch [1/2]: [21/29]  72%|███████▏  , lm_loss=5.34 [00:11<00:04]Epoch [1/2]: [21/29]  72%|███████▏  , lm_loss=5.33 [00:11<00:04]Epoch [1/2]: [22/29]  76%|███████▌  , lm_loss=5.33 [00:11<00:03]Epoch [1/2]: [22/29]  76%|███████▌  , lm_loss=5.33 [00:11<00:03]Epoch [1/2]: [22/29]  76%|███████▌  , lm_loss=5.34 [00:11<00:03]Epoch [1/2]: [23/29]  79%|███████▉  , lm_loss=5.34 [00:11<00:03]Epoch [1/2]: [23/29]  79%|███████▉  , lm_loss=5.34 [00:12<00:03]Epoch [1/2]: [23/29]  79%|███████▉  , lm_loss=5.35 [00:12<00:03]Epoch [1/2]: [24/29]  83%|████████▎ , lm_loss=5.35 [00:12<00:02]Epoch [1/2]: [24/29]  83%|████████▎ , lm_loss=5.35 [00:12<00:02]Epoch [1/2]: [24/29]  83%|████████▎ , lm_loss=5.33 [00:12<00:02]Epoch [1/2]: [25/29]  86%|████████▌ , lm_loss=5.33 [00:12<00:02]Epoch [1/2]: [25/29]  86%|████████▌ , lm_loss=5.33 [00:13<00:02]Epoch [1/2]: [25/29]  86%|████████▌ , lm_loss=5.34 [00:13<00:02]Epoch [1/2]: [26/29]  90%|████████▉ , lm_loss=5.34 [00:13<00:01]Epoch [1/2]: [26/29]  90%|████████▉ , lm_loss=5.34 [00:13<00:01]Epoch [1/2]: [26/29]  90%|████████▉ , lm_loss=5.41 [00:13<00:01]Epoch [1/2]: [27/29]  93%|█████████▎, lm_loss=5.41 [00:13<00:01]Epoch [1/2]: [27/29]  93%|█████████▎, lm_loss=5.41 [00:14<00:01]Epoch [1/2]: [27/29]  93%|█████████▎, lm_loss=5.43 [00:14<00:01]Epoch [1/2]: [28/29]  97%|█████████▋, lm_loss=5.43 [00:14<00:00]Epoch [1/2]: [28/29]  97%|█████████▋, lm_loss=5.43 [00:14<00:00]Epoch [1/2]: [28/29]  97%|█████████▋, lm_loss=5.42 [00:14<00:00]Epoch [1/2]: [29/29] 100%|██████████, lm_loss=5.42 [00:14<00:00]INFO:ignite.engine.engine.Engine:Engine run starting with max_epochs=1.
 INFO:ignite.engine.engine.Engine:Epoch[1] Complete. Time taken: 00:00:06
-
-                                                                
-
-Epoch [1/2]: [29/29] 100%|██████████, lm_loss=5.42 [00:20<00:00]INFO:ignite.engine.engine.Engine:Engine run complete. Time taken: 00:00:06
-
-Epoch [1/2]: [29/29] 100%|██████████, lm_loss=5.42 [00:20<00:00]
+                                                                Epoch [1/2]: [29/29] 100%|██████████, lm_loss=5.42 [00:20<00:00]INFO:ignite.engine.engine.Engine:Engine run complete. Time taken: 00:00:06
+Epoch [1/2]: [29/29] 100%|██████████, lm_loss=5.42 [00:20<00:00]
 INFO:ignite.engine.engine.Engine:Epoch[1] Complete. Time taken: 00:00:22
 Validation: {'Knowledge_acc': 0.05555555555555555,
  'Persona_acc': 0.762962962962963,
@@ -124,103 +42,50 @@ Validation: {'Knowledge_acc': 0.05555555555555555,
  'knowledge_loss': 2.5685851485640914,
  'lm_loss': 4.95086921961473,
  'persona_loss': 0.5155053032769097}
-
-[1/29]   3%|▎          [00:00<?]
-Epoch [2/2]: [1/29]   3%|▎          [00:00<?]
-Epoch [2/2]: [1/29]   3%|▎         , lm_loss=4.58 [00:00<?]
-Epoch [2/2]: [1/29]   3%|▎         , lm_loss=4.58 [00:00<?]
-Epoch [2/2]: [1/29]   3%|▎         , lm_loss=4.6 [00:00<?] 
-Epoch [2/2]: [2/29]   7%|▋         , lm_loss=4.6 [00:00<00:14]
-Epoch [2/2]: [2/29]   7%|▋         , lm_loss=4.6 [00:01<00:14]
-Epoch [2/2]: [2/29]   7%|▋         , lm_loss=4.68 [00:01<00:14]
-Epoch [2/2]: [3/29]  10%|█         , lm_loss=4.68 [00:01<00:14]
-Epoch [2/2]: [3/29]  10%|█         , lm_loss=4.68 [00:01<00:14]
-Epoch [2/2]: [3/29]  10%|█         , lm_loss=4.69 [00:01<00:14]
-Epoch [2/2]: [4/29]  14%|█▍        , lm_loss=4.69 [00:01<00:13]
-Epoch [2/2]: [4/29]  14%|█▍        , lm_loss=4.69 [00:02<00:13]
-Epoch [2/2]: [4/29]  14%|█▍        , lm_loss=4.7 [00:02<00:13] 
-Epoch [2/2]: [5/29]  17%|█▋        , lm_loss=4.7 [00:02<00:12]
-Epoch [2/2]: [5/29]  17%|█▋        , lm_loss=4.7 [00:02<00:12]
-Epoch [2/2]: [5/29]  17%|█▋        , lm_loss=4.7 [00:02<00:12]
-Epoch [2/2]: [6/29]  21%|██        , lm_loss=4.7 [00:02<00:12]
-Epoch [2/2]: [6/29]  21%|██        , lm_loss=4.7 [00:03<00:12]
-Epoch [2/2]: [6/29]  21%|██        , lm_loss=4.72 [00:03<00:12]
-Epoch [2/2]: [7/29]  24%|██▍       , lm_loss=4.72 [00:03<00:11]
-Epoch [2/2]: [7/29]  24%|██▍       , lm_loss=4.72 [00:03<00:11]
-Epoch [2/2]: [7/29]  24%|██▍       , lm_loss=4.74 [00:03<00:11]
-Epoch [2/2]: [8/29]  28%|██▊       , lm_loss=4.74 [00:03<00:11]
-Epoch [2/2]: [8/29]  28%|██▊       , lm_loss=4.74 [00:04<00:11]
-Epoch [2/2]: [8/29]  28%|██▊       , lm_loss=4.8 [00:04<00:11] 
-Epoch [2/2]: [9/29]  31%|███       , lm_loss=4.8 [00:04<00:10]
-Epoch [2/2]: [9/29]  31%|███       , lm_loss=4.8 [00:04<00:10]
-Epoch [2/2]: [9/29]  31%|███       , lm_loss=4.81 [00:04<00:10]
-Epoch [2/2]: [10/29]  34%|███▍      , lm_loss=4.81 [00:04<00:10]
-Epoch [2/2]: [10/29]  34%|███▍      , lm_loss=4.81 [00:05<00:10]
-Epoch [2/2]: [10/29]  34%|███▍      , lm_loss=4.83 [00:05<00:10]
-Epoch [2/2]: [11/29]  38%|███▊      , lm_loss=4.83 [00:05<00:09]
-Epoch [2/2]: [11/29]  38%|███▊      , lm_loss=4.83 [00:05<00:09]
-Epoch [2/2]: [11/29]  38%|███▊      , lm_loss=4.85 [00:05<00:09]
-Epoch [2/2]: [12/29]  41%|████▏     , lm_loss=4.85 [00:05<00:08]
-Epoch [2/2]: [12/29]  41%|████▏     , lm_loss=4.85 [00:06<00:08]
-Epoch [2/2]: [12/29]  41%|████▏     , lm_loss=4.86 [00:06<00:08]
-Epoch [2/2]: [13/29]  45%|████▍     , lm_loss=4.86 [00:06<00:08]
-Epoch [2/2]: [13/29]  45%|████▍     , lm_loss=4.86 [00:06<00:08]
-Epoch [2/2]: [13/29]  45%|████▍     , lm_loss=4.85 [00:06<00:08]
-Epoch [2/2]: [14/29]  48%|████▊     , lm_loss=4.85 [00:06<00:07]
-Epoch [2/2]: [14/29]  48%|████▊     , lm_loss=4.85 [00:07<00:07]
-Epoch [2/2]: [14/29]  48%|████▊     , lm_loss=4.87 [00:07<00:07]
-Epoch [2/2]: [15/29]  52%|█████▏    , lm_loss=4.87 [00:07<00:07]
-Epoch [2/2]: [15/29]  52%|█████▏    , lm_loss=4.87 [00:07<00:07]
-Epoch [2/2]: [15/29]  52%|█████▏    , lm_loss=4.88 [00:07<00:07]
-Epoch [2/2]: [16/29]  55%|█████▌    , lm_loss=4.88 [00:07<00:06]
-Epoch [2/2]: [16/29]  55%|█████▌    , lm_loss=4.88 [00:08<00:06]
-Epoch [2/2]: [16/29]  55%|█████▌    , lm_loss=4.88 [00:08<00:06]
-Epoch [2/2]: [17/29]  59%|█████▊    , lm_loss=4.88 [00:08<00:06]
-Epoch [2/2]: [17/29]  59%|█████▊    , lm_loss=4.88 [00:09<00:06]
-Epoch [2/2]: [17/29]  59%|█████▊    , lm_loss=4.89 [00:09<00:06]
-Epoch [2/2]: [18/29]  62%|██████▏   , lm_loss=4.89 [00:09<00:05]
-Epoch [2/2]: [18/29]  62%|██████▏   , lm_loss=4.89 [00:09<00:05]
-Epoch [2/2]: [18/29]  62%|██████▏   , lm_loss=4.9 [00:09<00:05] 
-Epoch [2/2]: [19/29]  66%|██████▌   , lm_loss=4.9 [00:09<00:05]
-Epoch [2/2]: [19/29]  66%|██████▌   , lm_loss=4.9 [00:10<00:05]
-Epoch [2/2]: [19/29]  66%|██████▌   , lm_loss=4.94 [00:10<00:05]
-Epoch [2/2]: [20/29]  69%|██████▉   , lm_loss=4.94 [00:10<00:04]
-Epoch [2/2]: [20/29]  69%|██████▉   , lm_loss=4.94 [00:10<00:04]
-Epoch [2/2]: [20/29]  69%|██████▉   , lm_loss=4.94 [00:10<00:04]
-Epoch [2/2]: [21/29]  72%|███████▏  , lm_loss=4.94 [00:10<00:04]
-Epoch [2/2]: [21/29]  72%|███████▏  , lm_loss=4.94 [00:11<00:04]
-Epoch [2/2]: [21/29]  72%|███████▏  , lm_loss=4.94 [00:11<00:04]
-Epoch [2/2]: [22/29]  76%|███████▌  , lm_loss=4.94 [00:11<00:03]
-Epoch [2/2]: [22/29]  76%|███████▌  , lm_loss=4.94 [00:11<00:03]
-Epoch [2/2]: [22/29]  76%|███████▌  , lm_loss=4.95 [00:11<00:03]
-Epoch [2/2]: [23/29]  79%|███████▉  , lm_loss=4.95 [00:11<00:03]
-Epoch [2/2]: [23/29]  79%|███████▉  , lm_loss=4.95 [00:12<00:03]
-Epoch [2/2]: [23/29]  79%|███████▉  , lm_loss=4.95 [00:12<00:03]
-Epoch [2/2]: [24/29]  83%|████████▎ , lm_loss=4.95 [00:12<00:02]
-Epoch [2/2]: [24/29]  83%|████████▎ , lm_loss=4.95 [00:12<00:02]
-Epoch [2/2]: [24/29]  83%|████████▎ , lm_loss=4.97 [00:12<00:02]
-Epoch [2/2]: [25/29]  86%|████████▌ , lm_loss=4.97 [00:12<00:02]
-Epoch [2/2]: [25/29]  86%|████████▌ , lm_loss=4.97 [00:13<00:02]
-Epoch [2/2]: [25/29]  86%|████████▌ , lm_loss=5 [00:13<00:02]   
-Epoch [2/2]: [26/29]  90%|████████▉ , lm_loss=5 [00:13<00:01]
-Epoch [2/2]: [26/29]  90%|████████▉ , lm_loss=5 [00:13<00:01]
-Epoch [2/2]: [26/29]  90%|████████▉ , lm_loss=5.01 [00:13<00:01]
-Epoch [2/2]: [27/29]  93%|█████████▎, lm_loss=5.01 [00:13<00:01]
-Epoch [2/2]: [27/29]  93%|█████████▎, lm_loss=5.01 [00:14<00:01]
-Epoch [2/2]: [27/29]  93%|█████████▎, lm_loss=5 [00:14<00:01]   
-Epoch [2/2]: [28/29]  97%|█████████▋, lm_loss=5 [00:14<00:00]
-Epoch [2/2]: [28/29]  97%|█████████▋, lm_loss=5 [00:14<00:00]
-Epoch [2/2]: [28/29]  97%|█████████▋, lm_loss=5.01 [00:14<00:00]
-Epoch [2/2]: [29/29] 100%|██████████, lm_loss=5.01 [00:14<00:00]INFO:ignite.engine.engine.Engine:Engine run starting with max_epochs=1.
+[1/29]   3%|▎          [00:00<?]Epoch [2/2]: [1/29]   3%|▎          [00:00<?]Epoch [2/2]: [1/29]   3%|▎         , lm_loss=4.58 [00:00<?]Epoch [2/2]: [1/29]   3%|▎         , lm_loss=4.58 [00:00<?]Epoch [2/2]: [1/29]   3%|▎         , lm_loss=4.6 [00:00<?] Epoch [2/2]: [2/29]   7%|▋         , lm_loss=4.6 [00:00<00:14]Epoch [2/2]: [2/29]   7%|▋         , lm_loss=4.6 [00:01<00:14]Epoch [2/2]: [2/29]   7%|▋         , lm_loss=4.68 [00:01<00:14]Epoch [2/2]: [3/29]  10%|█         , lm_loss=4.68 [00:01<00:14]Epoch [2/2]: [3/29]  10%|█         , lm_loss=4.68 [00:01<00:14]Epoch [2/2]: [3/29]  10%|█         , lm_loss=4.69 [00:01<00:14]Epoch [2/2]: [4/29]  14%|█▍        , lm_loss=4.69 [00:01<00:13]Epoch [2/2]: [4/29]  14%|█▍        , lm_loss=4.69 [00:02<00:13]Epoch [2/2]: [4/29]  14%|█▍        , lm_loss=4.7 [00:02<00:13] Epoch [2/2]: [5/29]  17%|█▋        , lm_loss=4.7 [00:02<00:12]Epoch [2/2]: [5/29]  17%|█▋        , lm_loss=4.7 [00:02<00:12]Epoch [2/2]: [5/29]  17%|█▋        , lm_loss=4.7 [00:02<00:12]Epoch [2/2]: [6/29]  21%|██        , lm_loss=4.7 [00:02<00:12]Epoch [2/2]: [6/29]  21%|██        , lm_loss=4.7 [00:03<00:12]Epoch [2/2]: [6/29]  21%|██        , lm_loss=4.72 [00:03<00:12]Epoch [2/2]: [7/29]  24%|██▍       , lm_loss=4.72 [00:03<00:11]Epoch [2/2]: [7/29]  24%|██▍       , lm_loss=4.72 [00:03<00:11]Epoch [2/2]: [7/29]  24%|██▍       , lm_loss=4.74 [00:03<00:11]Epoch [2/2]: [8/29]  28%|██▊       , lm_loss=4.74 [00:03<00:11]Epoch [2/2]: [8/29]  28%|██▊       , lm_loss=4.74 [00:04<00:11]Epoch [2/2]: [8/29]  28%|██▊       , lm_loss=4.8 [00:04<00:11] Epoch [2/2]: [9/29]  31%|███       , lm_loss=4.8 [00:04<00:10]Epoch [2/2]: [9/29]  31%|███       , lm_loss=4.8 [00:04<00:10]Epoch [2/2]: [9/29]  31%|███       , lm_loss=4.81 [00:04<00:10]Epoch [2/2]: [10/29]  34%|███▍      , lm_loss=4.81 [00:04<00:10]Epoch [2/2]: [10/29]  34%|███▍      , lm_loss=4.81 [00:05<00:10]Epoch [2/2]: [10/29]  34%|███▍      , lm_loss=4.83 [00:05<00:10]Epoch [2/2]: [11/29]  38%|███▊      , lm_loss=4.83 [00:05<00:09]Epoch [2/2]: [11/29]  38%|███▊      , lm_loss=4.83 [00:05<00:09]Epoch [2/2]: [11/29]  38%|███▊      , lm_loss=4.85 [00:05<00:09]Epoch [2/2]: [12/29]  41%|████▏     , lm_loss=4.85 [00:05<00:09]Epoch [2/2]: [12/29]  41%|████▏     , lm_loss=4.85 [00:06<00:09]Epoch [2/2]: [12/29]  41%|████▏     , lm_loss=4.86 [00:06<00:09]Epoch [2/2]: [13/29]  45%|████▍     , lm_loss=4.86 [00:06<00:08]Epoch [2/2]: [13/29]  45%|████▍     , lm_loss=4.86 [00:06<00:08]Epoch [2/2]: [13/29]  45%|████▍     , lm_loss=4.85 [00:06<00:08]Epoch [2/2]: [14/29]  48%|████▊     , lm_loss=4.85 [00:06<00:07]Epoch [2/2]: [14/29]  48%|████▊     , lm_loss=4.85 [00:07<00:07]Epoch [2/2]: [14/29]  48%|████▊     , lm_loss=4.87 [00:07<00:07]Epoch [2/2]: [15/29]  52%|█████▏    , lm_loss=4.87 [00:07<00:07]Epoch [2/2]: [15/29]  52%|█████▏    , lm_loss=4.87 [00:07<00:07]Epoch [2/2]: [15/29]  52%|█████▏    , lm_loss=4.88 [00:07<00:07]Epoch [2/2]: [16/29]  55%|█████▌    , lm_loss=4.88 [00:07<00:06]Epoch [2/2]: [16/29]  55%|█████▌    , lm_loss=4.88 [00:08<00:06]Epoch [2/2]: [16/29]  55%|█████▌    , lm_loss=4.88 [00:08<00:06]Epoch [2/2]: [17/29]  59%|█████▊    , lm_loss=4.88 [00:08<00:06]Epoch [2/2]: [17/29]  59%|█████▊    , lm_loss=4.88 [00:09<00:06]Epoch [2/2]: [17/29]  59%|█████▊    , lm_loss=4.89 [00:09<00:06]Epoch [2/2]: [18/29]  62%|██████▏   , lm_loss=4.89 [00:09<00:05]Epoch [2/2]: [18/29]  62%|██████▏   , lm_loss=4.89 [00:09<00:05]Epoch [2/2]: [18/29]  62%|██████▏   , lm_loss=4.9 [00:09<00:05] Epoch [2/2]: [19/29]  66%|██████▌   , lm_loss=4.9 [00:09<00:05]Epoch [2/2]: [19/29]  66%|██████▌   , lm_loss=4.9 [00:10<00:05]Epoch [2/2]: [19/29]  66%|██████▌   , lm_loss=4.94 [00:10<00:05]Epoch [2/2]: [20/29]  69%|██████▉   , lm_loss=4.94 [00:10<00:04]Epoch [2/2]: [20/29]  69%|██████▉   , lm_loss=4.94 [00:10<00:04]Epoch [2/2]: [20/29]  69%|██████▉   , lm_loss=4.94 [00:10<00:04]Epoch [2/2]: [21/29]  72%|███████▏  , lm_loss=4.94 [00:10<00:04]Epoch [2/2]: [21/29]  72%|███████▏  , lm_loss=4.94 [00:11<00:04]Epoch [2/2]: [21/29]  72%|███████▏  , lm_loss=4.94 [00:11<00:04]Epoch [2/2]: [22/29]  76%|███████▌  , lm_loss=4.94 [00:11<00:03]Epoch [2/2]: [22/29]  76%|███████▌  , lm_loss=4.94 [00:11<00:03]Epoch [2/2]: [22/29]  76%|███████▌  , lm_loss=4.95 [00:11<00:03]Epoch [2/2]: [23/29]  79%|███████▉  , lm_loss=4.95 [00:11<00:03]Epoch [2/2]: [23/29]  79%|███████▉  , lm_loss=4.95 [00:12<00:03]Epoch [2/2]: [23/29]  79%|███████▉  , lm_loss=4.95 [00:12<00:03]Epoch [2/2]: [24/29]  83%|████████▎ , lm_loss=4.95 [00:12<00:02]Epoch [2/2]: [24/29]  83%|████████▎ , lm_loss=4.95 [00:12<00:02]Epoch [2/2]: [24/29]  83%|████████▎ , lm_loss=4.97 [00:12<00:02]Epoch [2/2]: [25/29]  86%|████████▌ , lm_loss=4.97 [00:12<00:02]Epoch [2/2]: [25/29]  86%|████████▌ , lm_loss=4.97 [00:13<00:02]Epoch [2/2]: [25/29]  86%|████████▌ , lm_loss=5 [00:13<00:02]   Epoch [2/2]: [26/29]  90%|████████▉ , lm_loss=5 [00:13<00:01]Epoch [2/2]: [26/29]  90%|████████▉ , lm_loss=5 [00:13<00:01]Epoch [2/2]: [26/29]  90%|████████▉ , lm_loss=5.01 [00:13<00:01]Epoch [2/2]: [27/29]  93%|█████████▎, lm_loss=5.01 [00:13<00:01]Epoch [2/2]: [27/29]  93%|█████████▎, lm_loss=5.01 [00:14<00:01]Epoch [2/2]: [27/29]  93%|█████████▎, lm_loss=5 [00:14<00:01]   Epoch [2/2]: [28/29]  97%|█████████▋, lm_loss=5 [00:14<00:00]Epoch [2/2]: [28/29]  97%|█████████▋, lm_loss=5 [00:14<00:00]Epoch [2/2]: [28/29]  97%|█████████▋, lm_loss=5.01 [00:14<00:00]Epoch [2/2]: [29/29] 100%|██████████, lm_loss=5.01 [00:14<00:00]INFO:ignite.engine.engine.Engine:Engine run starting with max_epochs=1.
 INFO:ignite.engine.engine.Engine:Epoch[1] Complete. Time taken: 00:00:06
-
-                                                                
-
-Epoch [2/2]: [29/29] 100%|██████████, lm_loss=5.01 [00:20<00:00]INFO:ignite.engine.engine.Engine:Engine run complete. Time taken: 00:00:06
-
-Epoch [2/2]: [29/29] 100%|██████████, lm_loss=5.01 [00:20<00:00]
+                                                                Epoch [2/2]: [29/29] 100%|██████████, lm_loss=5.01 [00:20<00:00]INFO:ignite.engine.engine.Engine:Engine run complete. Time taken: 00:00:06
+Epoch [2/2]: [29/29] 100%|██████████, lm_loss=5.01 [00:20<00:00]
 INFO:ignite.engine.engine.Engine:Epoch[2] Complete. Time taken: 00:00:21
 INFO:ignite.engine.engine.Engine:Engine run complete. Time taken: 00:00:43
+wandb: Waiting for W&B process to finish... (success).
+wandb: - 0.001 MB of 0.001 MB uploaded (0.000 MB deduped)wandb: \ 0.001 MB of 0.001 MB uploaded (0.000 MB deduped)wandb: | 0.001 MB of 0.001 MB uploaded (0.000 MB deduped)wandb: / 0.001 MB of 0.001 MB uploaded (0.000 MB deduped)wandb: - 0.001 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: \ 0.001 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: | 0.001 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: / 0.001 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: - 0.001 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: \ 0.001 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: | 0.001 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: / 0.006 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: - 0.010 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: \ 0.010 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: | 0.010 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: / 0.010 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: - 0.010 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: \ 0.010 MB of 0.010 MB uploaded (0.000 MB deduped)wandb: | 0.010 MB of 0.010 MB uploaded (0.000 MB deduped)wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:         train_knowledge_loss ▁▁▁▂▂▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄████████████████████
+wandb:                train_lm_loss ▂▂▃▄▅▅▆▆▆▇▇▇▇▇▇▇▇▇██▁▁▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅
+wandb:           train_persona_loss ▁▁▁▂▂▂▂▂▂▂▂▃▃▃▃▃▃▃▄▄▇▇███████████████▇▇█
+wandb:          valid_Knowledge_acc ▁█
+wandb:            valid_Persona_acc ▁█
+wandb:  valid_average_Knowledge_acc ▁█
+wandb:    valid_average_Persona_acc ▁█
+wandb: valid_average_knowledge_loss ▁█
+wandb:        valid_average_lm_loss █▁
+wandb:   valid_average_persona_loss █▁
+wandb:            valid_average_ppl █▁
+wandb:         valid_knowledge_loss ▁█
+wandb:                valid_lm_loss █▁
+wandb:           valid_persona_loss █▁
+wandb: 
+wandb: Run summary:
+wandb:         train_knowledge_loss 2.61382
+wandb:                train_lm_loss 5.0068
+wandb:           train_persona_loss 0.53781
+wandb:          valid_Knowledge_acc 0.07407
+wandb:            valid_Persona_acc 0.81852
+wandb:  valid_average_Knowledge_acc 0.07407
+wandb:    valid_average_Persona_acc 0.81852
+wandb: valid_average_knowledge_loss 2.57569
+wandb:        valid_average_lm_loss 4.8295
+wandb:   valid_average_persona_loss 0.47501
+wandb:            valid_average_ppl 125.14835
+wandb:         valid_knowledge_loss 2.57569
+wandb:                valid_lm_loss 4.8295
+wandb:           valid_persona_loss 0.47501
+wandb: 
+wandb: Synced worldly-mountain-15: https://wandb.ai/dimweb/focus/runs/uktb7er4
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20220909_144117-uktb7er4/logs
 Validation: {'Knowledge_acc': 0.07407407407407407,
  'Persona_acc': 0.8185185185185185,
  'average_Knowledge_acc': 0.07407407407407407,
