@@ -28,14 +28,14 @@ from ignite.contrib.handlers.tensorboard_logger import (
 from transformers import AdamW, WEIGHTS_NAME, CONFIG_NAME
 from utils_focus import make_focus_logdir
 from data_utils import get_data_loaders, add_special_tokens_
-
+from typing import List
 import wandb
 
 logger = logging.getLogger(__file__)
 
 
 def wandb_log_metrics(
-    metrics_names: list[str] = None, trainer: Engine = None, trainer_type: str = None
+    metrics_names: List[str] = None, trainer: Engine = None, trainer_type: str = None
 ):
     for name in metrics_names:
         wandb_metric_name = f"{trainer_type}_{name}"
