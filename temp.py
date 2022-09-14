@@ -1,12 +1,7 @@
-from argparse import ArgumentParser
+from deepdiff import DeepDiff
 
-parser = ArgumentParser()
-parser.add_argument(
-    "--model_name",
-    type=str,
-    default="",
-    help="{GPT2, BART, transformer-decoder, transformer-encdec}",
-)
+obj1 = {"a": 1, "b": 2, "c": [1, 2]}
+obj2 = {"a": 1, "b": 2, "c": [1, 2, 3]}
 
-args = parser.parse_args()
-print(vars(args))
+diff = DeepDiff(obj1, obj2, ignore_order=True)
+assert not diff, diff

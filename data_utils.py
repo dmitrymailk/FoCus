@@ -6,8 +6,15 @@ from itertools import chain
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 from python_tf_idf.tfidf import TfIdf
-
+import json
 from utils_focus import get_dataset_only_train_dev, get_dataset_only_test
+from deepdiff import DeepDiff
+
+
+def compare_dicts(obj1, obj2):
+    diff = DeepDiff(obj1, obj2, ignore_order=True)
+    assert not diff, diff
+
 
 SPECIAL_TOKENS = ["<machine>", "<human>", "<persona>", "<knowledge>"]
 ATTR_TO_SPECIAL_TOKEN = {
@@ -752,6 +759,21 @@ def get_data_loaders(args, tokenizer, generation=False):
         if args.distributed
         else None
     )
+    # compare datasets from json
+    def defaultdict_from_dict(d):
+        nd = lambda: defaultdict(nd)
+        ni = nd()
+        ni.update(d)
+        return ni
+
+    with open("./temp/train.json", "r") as f:
+        train_json = json.load(f, object_hook=defaultdict_from_dict)
+        compare_dicts(train_json, datasets["train"])
+
+    with open("./temp/valid.json", "r") as f:
+        valid_json = json.load(f, object_hook=defaultdict_from_dict)
+        compare_dicts(valid_json, datasets["valid"])
+
     train_loader = DataLoader(
         train_dataset,
         sampler=train_sampler,
