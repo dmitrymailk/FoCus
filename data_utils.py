@@ -9,6 +9,7 @@ from python_tf_idf.tfidf import TfIdf
 import json
 from utils_focus import get_dataset_only_train_dev, get_dataset_only_test
 from deepdiff import DeepDiff
+import os
 
 
 def compare_dicts(obj1, obj2):
@@ -765,6 +766,14 @@ def get_data_loaders(args, tokenizer, generation=False):
         ni = nd()
         ni.update(d)
         return ni
+
+    # save to json, train.json, valid.json
+    # if not os.path.exists("./temp"):
+    #     os.mkdir("./temp")
+    # with open("./temp/train.json", "w") as f:
+    #     json.dumps(datasets["train"], f)
+    # with open("./temp/valid.json", "w") as f:
+    #     json.dumps(datasets["valid"], f)
 
     with open("./temp/train.json", "r") as f:
         train_json = json.load(f, object_hook=defaultdict_from_dict)
