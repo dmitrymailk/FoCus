@@ -1,0 +1,30 @@
+INFO:/home/dimweb/Desktop/deeppavlov/FoCus/evaluate_test.py:Namespace(test_dataset_path='./data/valid_focus.json', test_dataset_cache='data/focus_cache.tar.gz', model_name='BART', model_checkpoint='./models/train_focus_BART_E2_L10', max_history=1, test_batch_size=16, device='cuda', no_sample=False, max_length=20, min_length=1, inference=False, seed=19950604, temperature=0.7, top_k=0, top_p=0.9, local_rank=-1)
+INFO:/home/dimweb/Desktop/deeppavlov/FoCus/evaluate_test.py:Get model and tokenizer
+INFO:/home/dimweb/Desktop/deeppavlov/FoCus/evaluate_test.py:Prepare datasets
+INFO:/home/dimweb/Desktop/deeppavlov/FoCus/utils_focus.py:Process dataset from ./data/valid_focus.json
+INFO:/home/dimweb/Desktop/deeppavlov/FoCus/utils_focus.py:Tokenize and encode the dataset
+INFO:/home/dimweb/Desktop/deeppavlov/FoCus/data_utils.py:Build inputs and labels
+INFO:/home/dimweb/Desktop/deeppavlov/FoCus/data_utils.py:Pad inputs and convert to Tensor
+INFO:/home/dimweb/Desktop/deeppavlov/FoCus/data_utils.py:Build train and validation dataloaders
+INFO:/home/dimweb/Desktop/deeppavlov/FoCus/data_utils.py:Test dataset (Batch, Candidates, Seq length): torch.Size([5639, 112])
+orig num 50265 num_added 4
+test 1000
+remove list:  0
+Downloading builder script:   0%|          | 0.00/2.85k [00:00<?, ?B/s]Downloading builder script: 7.65kB [00:00, 2.18MB/s]                   
+  0%|          | 0/353 [00:00<?, ?it/s]/home/dimweb/Desktop/deeppavlov/d_env/lib/python3.10/site-packages/torchmetrics/functional/text/chrf.py:198: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  total_n_grams[n] = tensor(sum(n_grams_counts[n].values()))
+/home/dimweb/Desktop/deeppavlov/d_env/lib/python3.10/site-packages/torchmetrics/functional/text/chrf.py:225: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  matching_n_grams[n] = tensor(
+  0%|          | 0/353 [00:09<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/dimweb/Desktop/deeppavlov/FoCus/evaluate_test.py", line 658, in <module>
+    run()
+  File "/home/dimweb/Desktop/deeppavlov/FoCus/evaluate_test.py", line 633, in run
+    pg.update((p_index_cvtd.squeeze(), p_label_cvtd))
+  File "/home/dimweb/Desktop/deeppavlov/FoCus/ignite/metrics/metric.py", line 608, in wrapper
+    func(self, *args, **kwargs)
+  File "/home/dimweb/Desktop/deeppavlov/FoCus/ignite/metrics/accuracy.py", line 168, in update
+    self._check_shape(output)
+  File "/home/dimweb/Desktop/deeppavlov/FoCus/ignite/metrics/accuracy.py", line 51, in _check_shape
+    raise ValueError("y and y_pred must have compatible shapes.")
+ValueError: y and y_pred must have compatible shapes.
