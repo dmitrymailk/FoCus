@@ -160,7 +160,8 @@ def train():
         "--flag", type=str, default="", help="Assign the name of the folder"
     )
     parser.add_argument(
-        "--debug", type=bool, default=False, help="Variable for debugging"
+        "--debug",
+        action="store_true",
     )
     parser.add_argument("--seed", type=int, default=19950604)
     parser.add_argument(

@@ -27,7 +27,7 @@ def get_dataset_only_train_dev(
         train_dataset_cache + "_train_focus_" + type(tokenizer).__name__
     )
     dev_dataset_cache = dev_dataset_cache + "_dev_focus_" + type(tokenizer).__name__
-    if train_dataset_cache and os.path.isfile(train_dataset_cache):
+    if train_dataset_cache and os.path.isfile(train_dataset_cache) and not debug:
         logger.info("Load tokenized dataset from cache at %s", train_dataset_cache)
         train_dataset = torch.load(train_dataset_cache)
         dev_dataset = torch.load(dev_dataset_cache)
@@ -49,7 +49,7 @@ def get_dataset_only_train_dev(
                 dataset_enc[name] = list()
 
                 if debug:
-                    dataset["data"] = dataset["data"][:10]
+                    dataset["data"] = dataset["data"][:1]
 
                 for dialogue in dataset["data"]:
                     ID = dialogue["dialogID"]
