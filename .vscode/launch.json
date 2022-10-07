@@ -5,7 +5,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Python: Current File",
+			"name": "Bart",
 			"type": "python",
 			"request": "launch",
 			"program": "/home/dimweb/Desktop/deeppavlov/FoCus/train_focus.py",
@@ -13,7 +13,7 @@
 			"justMyCode": true,
 			"args": [
 				"--train_batch_size=2",
-				"--n_epochs=2",
+				"--n_epochs=1",
 				"--lm_coef=10",
 				"--flag=E2_L10",
 				"--model_name=BART",

@@ -277,7 +277,7 @@ def train():
                 knowledge_input_ids=knowledge_candidates,
                 persona_can_idx=persona_can_idx,
                 persona_grounding=persona_grounding,
-                knowledge_can_idx=knowledge_can_idx,
+                knowledge_can_eos_idx=knowledge_can_idx,
                 knowledge_grounding=knowledge_grounding,
                 tot_knowledge=tot_knowledge,
                 tot_knowledge_eos=tot_knowledge_eos,
@@ -313,48 +313,7 @@ def train():
         with torch.no_grad():
             batch = tuple(input_tensor.to(args.device) for input_tensor in batch)
             if model.config.model_type == "gpt2":
-                (
-                    input_ids,
-                    input_eos,
-                    lm_labels,
-                    token_type_ids,
-                    mc_token_ids,
-                    persona_candidates,
-                    persona_can_idx,
-                    persona_grounding,
-                    knowledge_candidates,
-                    knowledge_can_idx,
-                    knowledge_grounding,
-                    tot_knowledge,
-                    tot_knowledge_token_ids,
-                    tot_knowledge_eos,
-                    reply,
-                    dialog,
-                    dialog_tti,
-                ) = batch
-
-                output = model(
-                    input_ids=input_ids,
-                    input_eos=input_eos,
-                    token_type_ids=token_type_ids,
-                    only_dial_input_ids=dialog,
-                    only_dial_token_type_ids=dialog_tti,
-                    persona_input_ids=persona_candidates,
-                    knowledge_input_ids=knowledge_candidates,
-                    persona_can_idx=persona_can_idx,
-                    knowledge_can_idx=knowledge_can_idx,
-                    tot_knowledge=tot_knowledge,
-                    tot_knowledge_token_ids=tot_knowledge_token_ids,
-                    tot_knowledge_eos=tot_knowledge_eos,
-                    training=False,
-                    mc_token_ids=mc_token_ids,
-                )
-                lm_labels, lm_logits, knowledge_logits, persona_logits = (
-                    output[0],
-                    output[1],
-                    output[2],
-                    output[3],
-                )
+                pass
 
             elif model.config.model_type == "bart":
                 (
@@ -417,10 +376,6 @@ def train():
             k_index_1, k_index_5 = k_index_1.squeeze(0), k_index_5.squeeze(0)
             k_index_1_cvtd = torch.tensor(
                 [1 if num in k_index_1 else 0 for num in range(10)], device=args.device
-            )
-            k_label_cvtd = torch.tensor(
-                [1 if num in knowledge_grounding else 0 for num in range(10)],
-                device=args.device,
             )
 
             lm_pred = softmax(lm_logits_flat_shifted)
@@ -608,11 +563,11 @@ def train():
             {"mymodel": getattr(model, "module", model)},
         )  # "getattr" takes care of distributed encapsulation
 
-        torch.save(args, log_dir + "/model_training_args.bin")
-        getattr(model, "module", model).config.to_json_file(
-            os.path.join(log_dir, CONFIG_NAME)
-        )
-        tokenizer.save_pretrained(log_dir)
+        # torch.save(args, log_dir + "/model_training_args.bin")
+        # getattr(model, "module", model).config.to_json_file(
+        #     os.path.join(log_dir, CONFIG_NAME)
+        # )
+        # tokenizer.save_pretrained(log_dir)
 
     # Run the training
     trainer.run(train_loader, max_epochs=args.n_epochs)
