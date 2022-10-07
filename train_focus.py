@@ -277,7 +277,7 @@ def train():
                 knowledge_input_ids=knowledge_candidates,
                 persona_can_idx=persona_can_idx,
                 persona_grounding=persona_grounding,
-                knowledge_can_eos_idx=knowledge_can_idx,
+                knowledge_can_idx=knowledge_can_idx,
                 knowledge_grounding=knowledge_grounding,
                 tot_knowledge=tot_knowledge,
                 tot_knowledge_eos=tot_knowledge_eos,

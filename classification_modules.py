@@ -60,7 +60,7 @@ class BARTPK_ctxt(BartForConditionalGeneration):
         knowledge_input_ids=None,
         persona_can_idx=None,
         persona_grounding=None,
-        knowledge_can_eos_idx=None,
+        knowledge_can_idx=None,
         knowledge_grounding=None,
         tot_knowledge=None,
         tot_knowledge_eos=None,
@@ -204,12 +204,12 @@ class BARTPK_ctxt(BartForConditionalGeneration):
                 knowledge_emb = self.model(
                     input_ids=knowledge_input_ids.view(batch * num_knowledge_can, -1)
                 )["last_hidden_state"].view(batch, num_knowledge_can, -1, embdim)
-                if knowledge_can_eos_idx is not None:
+                if knowledge_can_idx is not None:
                     knowledge_list = []
                     for batch_i in range(batch):
                         inctxt_eos_batch = inctxt_states[batch_i]
                         knowledge_emb_batch = knowledge_emb[batch_i]
-                        knowledge_can_idx_batch = knowledge_can_eos_idx[batch_i]
+                        knowledge_can_idx_batch = knowledge_can_idx[batch_i]
                         knowledge_batch_list = []
                         for i in range(num_knowledge_can):
                             # получаем репрезентацию знаний о кандидате
@@ -237,76 +237,14 @@ class BARTPK_ctxt(BartForConditionalGeneration):
                     )
                     outputs = (knowledge_logits,) + outputs
                     softmax = Softmax(dim=-1)
-                    knowledge_softmax = softmax(knowledge_logits)
-                    _, k_index_1 = torch.topk(knowledge_softmax, k=1, dim=-1)
-                    # предсказанные
-                    all_knowledge_pred = []
-                    for batch_i in range(batch):
-                        knowledge_pred_idx = k_index_1[batch_i]
-                        knowledge_pred = knowledge_input_ids[batch_i][
-                            knowledge_pred_idx
-                        ]
-                        mask_knowledge = torch.ne(knowledge_pred, padding)
-                        knowledge_pred = torch.masked_select(
-                            knowledge_pred, mask_knowledge
-                        )
-                        knowledge_pred = knowledge_pred[1:-2]
-                        all_knowledge_pred.append(
-                            knowledge_pred
-                        )  # delete bos, knowledge_st, eos
 
-            final_input_list = []
-            for batch_i in range(batch):
-                only_dial_input_ids_batch = only_dial_input_ids[batch_i]
-                mask_only_dial_input_ids_batch = torch.ne(
-                    only_dial_input_ids_batch, padding
-                )
-                only_dial_input_ids_batch = torch.masked_select(
-                    only_dial_input_ids_batch, mask_only_dial_input_ids_batch
-                )
-                if len(all_persona_pred[batch_i]) > 0:
-                    concat_persona = torch.cat(all_persona_pred[batch_i], dim=-1)
-                    new_persona = torch.cat([persona_tensor, concat_persona], dim=-1)
-                else:
-                    new_persona = None
-
-                new_knowledge = torch.cat(
-                    [knowledge_tensor, all_knowledge_pred[batch_i]], dim=-1
-                )
-
-                if new_persona is not None:
-                    new_input = torch.cat(
-                        [
-                            bos_tensor,
-                            new_knowledge,
-                            new_persona,
-                            only_dial_input_ids_batch,
-                            eos_tensor,
-                        ],
-                        dim=-1,
-                    )
-                else:
-                    new_input = torch.cat(
-                        [
-                            bos_tensor,
-                            new_knowledge,
-                            only_dial_input_ids_batch,
-                            eos_tensor,
-                        ],
-                        dim=-1,
-                    )
-
-                new_input_size = new_input.size()[0]
-
-                if new_input_size < int(self.max_position):
-                    padding_size = int(self.max_position) - new_input_size
-                    add_padding = torch.tensor([padding] * padding_size).cuda(device)
-                    final_input = torch.cat([new_input, add_padding], dim=-1)
-                final_input_list.append(final_input)
-            input_ids = torch.stack(final_input_list)
-        dynamic_lm_hidden_states = self.model(
-            input_ids=input_ids, decoder_input_ids=decoder_input_ids
-        )["last_hidden_state"]
+        dynamic_lm_hidden_states = torch.randn(
+            (
+                decoder_input_ids.shape[0],
+                decoder_input_ids.shape[1],
+                self.config.d_model,
+            )
+        ).to(device)
 
         if dynamic_lm_hidden_states is not None:
             dynamic_lm_logits = self.lm_head(dynamic_lm_hidden_states)

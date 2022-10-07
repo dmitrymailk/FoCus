@@ -5,11 +5,11 @@
 # CUDA_VISIBLE_DEVICES=0 nohup python train_focus.py --n_epochs 2 --lm_coef 10 --flag E2_L10_LM --ps_coef 0 --kn_coef 0 --model_name BART --incontext --wandb --train_batch_size=2 > train_log_focus/e2_L20_LM_bart.log &
 #CUDA_VISIBLE_DEVICES=6 nohup python train_focus.py --n_epochs 2 --lm_coef 10 --flag E2_L10_LM --ps_coef 0 --kn_coef 0 --model_name transformer-decoder --incontext > train_log_focus/e2_L20_LM_decoder.log &
 #CUDA_VISIBLE_DEVICES=7 nohup python train_focus.py --n_epochs 2 --lm_coef 10 --flag E2_L10_LM --ps_coef 0 --kn_coef 0 --model_name transformer-encdec --incontext > train_log_focus/e2_L20_LM_encdec.log &
-
+rm -rf ./models/train_focus_BART_E2_L10/*
 #Train the model with Knowledge Selection, Persona Selection and Language Modeling
 # CUDA_VISIBLE_DEVICES=0 nohup python train_focus.py --n_epochs 2 --lm_coef 10 --flag E2_L10 --model_name GPT2 --incontext --debug=True > train_log_focus/e2_L20_gpt.log &
-# CUDA_VISIBLE_DEVICES=0 nohup python train_focus.py --n_epochs 2 --lm_coef 10 --flag E2_L10 --model_name BART --incontext --wandb --debug --train_batch_size=2  > train_log_focus/e2_L20_bart.log &
-CUDA_VISIBLE_DEVICES=0 nohup python train_focus.py --n_epochs 2 --lm_coef 10 --flag E2_L10 --model_name BART --incontext --wandb --train_batch_size=2  > train_log_focus/e2_L20_bart.log &
+CUDA_VISIBLE_DEVICES=0 nohup python train_focus.py --n_epochs 2 --lm_coef 10 --flag E2_L10 --model_name BART --incontext --debug --train_batch_size=2  > train_log_focus/e2_L20_bart.log &
+# CUDA_VISIBLE_DEVICES=0 nohup python train_focus.py --n_epochs 2 --lm_coef 10 --flag E2_L10 --model_name BART --incontext --wandb --train_batch_size=2  > train_log_focus/e2_L20_bart.log &
 #CUDA_VISIBLE_DEVICES=6 nohup python train_focus.py --n_epochs 2 --lm_coef 10 --flag E2_L10 --model_name transformer-decoder --incontext > train_log_focus/e2_L20_decoder.log &
 #CUDA_VISIBLE_DEVICES=7 nohup python train_focus.py --n_epochs 2 --lm_coef 10 --flag E2_L10 --model_name transformer-encdec --incontext > train_log_focus/e2_L20_encdec.log &
 
