@@ -211,15 +211,7 @@ def train():
     logger.info("Prepare tokenizer, pretrained model and optimizer.")
 
     if args.model_name == "GPT2":
-        from transformers import GPT2Tokenizer
-        from classification_modules import GPT2PK_ctxt as gpt2model
-
-        tokenizer = GPT2Tokenizer.from_pretrained(args.gpt2_model_path)
-        model = gpt2model.from_pretrained(args.gpt2_model_path)
-        model.to(args.device)
-        model.eval()
-        if args.gpt2_model_path == "gpt2" or "gpt2-medium":
-            add_special_tokens_(model, tokenizer)
+        pass
 
     elif args.model_name == "BART":
         from transformers import BartTokenizer
@@ -229,28 +221,6 @@ def train():
         model = bartmodel.from_pretrained(args.bart_model_path)
         model.to(args.device)
         model.eval()
-        if args.bart_model_path == "facebook/bart-base" or "facebook/bart-large":
-            add_special_tokens_(model, tokenizer)
-
-    elif args.model_name == "transformer-decoder":
-        from transformers import GPT2Tokenizer, GPT2Config
-        from classification_modules import GPT2PK_ctxt as gpt2model
-
-        tokenizer = GPT2Tokenizer.from_pretrained(args.gpt2_model_path)
-        model_config = GPT2Config.from_pretrained(args.gpt2_model_path)
-        model = gpt2model(model_config)
-        model.to(args.device)
-        if args.gpt2_model_path == "gpt2" or "gpt2-medium":
-            add_special_tokens_(model, tokenizer)
-
-    elif args.model_name == "transformer-encdec":
-        from transformers import BartTokenizer, BartConfig
-        from classification_modules import BARTPK_ctxt as bartmodel
-
-        tokenizer = BartTokenizer.from_pretrained(args.bart_model_path)
-        model_config = BartConfig.from_pretrained(args.bart_model_path)
-        model = bartmodel(model_config)
-        model.to(args.device)
         if args.bart_model_path == "facebook/bart-base" or "facebook/bart-large":
             add_special_tokens_(model, tokenizer)
 
@@ -278,43 +248,7 @@ def train():
         model.train()
         batch = tuple(input_tensor.to(args.device) for input_tensor in batch)
         if model.config.model_type == "gpt2":
-            (
-                input_ids,
-                input_eos,
-                lm_labels,
-                token_type_ids,
-                mc_token_ids,
-                persona_candidates,
-                persona_can_idx,
-                persona_grounding,
-                knowledge_candidates,
-                knowledge_can_idx,
-                knowledge_grounding,
-                tot_knowledge,
-                tot_knowledge_token_ids,
-                tot_knowledge_eos,
-                reply,
-                dialog,
-                dialog_tti,
-            ) = batch
-            output = model(
-                input_ids=input_ids,
-                input_eos=input_eos,
-                token_type_ids=token_type_ids,
-                only_dial_input_ids=dialog,
-                only_dial_token_type_ids=dialog_tti,
-                persona_input_ids=persona_candidates,
-                knowledge_input_ids=knowledge_candidates,
-                persona_can_idx=persona_can_idx,
-                persona_grounding=persona_grounding,
-                knowledge_can_idx=knowledge_can_idx,
-                knowledge_grounding=knowledge_grounding,
-                tot_knowledge=tot_knowledge,
-                tot_knowledge_token_ids=tot_knowledge_token_ids,
-                tot_knowledge_eos=tot_knowledge_eos,
-                training=True,
-                mc_token_ids=mc_token_ids,
-            )
+            pass
         elif model.config.model_type == "bart":
             (
                 input_ids,
