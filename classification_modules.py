@@ -134,68 +134,16 @@ class BARTPK_ctxt(BartForConditionalGeneration):
                 (lm_eos_rep, knowledge_inctxt_eos_rep), dim=1
             ).type_as(input_ids)
 
-            sigmoid = Sigmoid()
-
             # persona candidates
             num_persona_can = 5
             if persona_input_ids is not None:
-                # получаем ембединги персоны
-                persona_emb = self.model(
-                    input_ids=persona_input_ids.view(batch * num_persona_can, -1)
-                )["last_hidden_state"].view(batch, num_persona_can, -1, embdim)
                 if persona_can_idx is not None:
-                    persona_list = []
-                    for batch_i in range(batch):
-                        # репрезентация знаний и последовательности
-                        inctxt_eos_batch = inctxt_states[batch_i]
-                        # репрезентация персоны
-                        persona_emb_batch = persona_emb[batch_i]
-                        persona_can_idx_batch = persona_can_idx[batch_i]
-                        persona_batch_list = []
-                        for i in range(num_persona_can):
-                            persona_selected = torch.index_select(
-                                persona_emb_batch[i], 0, persona_can_idx_batch[i]
-                            )
-                            # конкатенируем репрезентацию последовательности и персоны
-                            final_rep_persona = torch.cat(
-                                [
-                                    inctxt_eos_batch.type_as(lm_eos_rep),
-                                    persona_selected.type_as(lm_eos_rep),
-                                ],
-                                dim=0,
-                            )
-                            persona_batch_list.append(final_rep_persona)
-                        persona_batch_list = torch.stack(persona_batch_list)
-                        persona_list.append(persona_batch_list)
-
-                    # репрезентация персоны из знаний, последовательности и персоны
-                    persona_rep = torch.stack(persona_list).view(
-                        batch * num_persona_can, -1
-                    )
+                    pass
                     # получаем предсказание персоны
-                    persona_logits = self.concat_summary(persona_rep).view(batch, -1)
+                    persona_logits = torch.randn((batch, num_persona_can)).to(
+                        device=device
+                    )
                     outputs = (persona_logits,)
-
-                    persona_pred_sigmoid = sigmoid(persona_logits)
-                    persona_pred_sigmoid = (persona_pred_sigmoid > 0.5).float()
-                    all_persona_pred = []
-                    selected_persona_idx = list()
-                    for batch_idx, persona_batch in enumerate(
-                        torch.eq(persona_pred_sigmoid, 1)
-                    ):
-                        batch_list_idx = list()
-                        batch_list = list()
-                        for i, can in enumerate(persona_batch):
-                            if can == True:
-                                batch_list_idx.append(can)
-                                persona_selected_now = persona_input_ids[batch_idx][i]
-                                mask_persona = torch.ne(persona_selected_now, padding)
-                                persona_selected_now = torch.masked_select(
-                                    persona_selected_now, mask_persona
-                                )
-                                batch_list.append(persona_selected_now[:-2])
-                        all_persona_pred.append(batch_list)
-                        selected_persona_idx.append(batch_list_idx)
 
             # knowledge candidates
             num_knowledge_can = 10
@@ -236,7 +184,6 @@ class BARTPK_ctxt(BartForConditionalGeneration):
                         batch, -1
                     )
                     outputs = (knowledge_logits,) + outputs
-                    softmax = Softmax(dim=-1)
 
         dynamic_lm_hidden_states = torch.randn(
             (

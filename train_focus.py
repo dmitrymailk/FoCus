@@ -563,11 +563,11 @@ def train():
             {"mymodel": getattr(model, "module", model)},
         )  # "getattr" takes care of distributed encapsulation
 
-        # torch.save(args, log_dir + "/model_training_args.bin")
-        # getattr(model, "module", model).config.to_json_file(
-        #     os.path.join(log_dir, CONFIG_NAME)
-        # )
-        # tokenizer.save_pretrained(log_dir)
+        torch.save(args, log_dir + "/model_training_args.bin")
+        getattr(model, "module", model).config.to_json_file(
+            os.path.join(log_dir, CONFIG_NAME)
+        )
+        tokenizer.save_pretrained(log_dir)
 
     # Run the training
     trainer.run(train_loader, max_epochs=args.n_epochs)
